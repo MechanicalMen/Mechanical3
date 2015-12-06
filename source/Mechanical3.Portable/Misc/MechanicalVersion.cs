@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Mechanical3
+namespace Mechanical3.Misc
 {
     /// <summary>
     /// Version information about an assembly, independent of the assembly version attributes.
@@ -105,4 +105,6 @@ namespace Mechanical3
 
         #endregion
     }
+
+    //// TODO: parse JSON properly
 }
