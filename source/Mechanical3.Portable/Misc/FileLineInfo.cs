@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Mechanical3.Core;
 
 namespace Mechanical3.Misc
 {
@@ -26,16 +27,16 @@ namespace Mechanical3.Misc
         /// <param name="line">The line number in the source file at which this method is called.</param>
         public FileLineInfo( string file, string member, int line )
         {
-            if( IsNullRef(file)
-             || IsNullRef(member)
+            if( file.NullReference()
+             || member.NullReference()
              || line < 0 )
             {
                 throw new ArgumentException(
                     string.Format( // NOTE: intentionally not using validation or SafeString
                         CultureInfo.InvariantCulture,
                         "Invalid arguments! (file: {0}; member: {1}; line: {2}",
-                        IsNullRef(file) ? "<null>" : '"' + file + '"',
-                        IsNullRef(member) ? "<null>" : '"' + member + '"',
+                        file.NullReference() ? "<null>" : '"' + file + '"',
+                        member.NullReference() ? "<null>" : '"' + member + '"',
                         line));
             }
 
@@ -92,7 +93,7 @@ namespace Mechanical3.Misc
         /// <param name="sb">The <see cref="StringBuilder"/> to append to.</param>
         public void ToString( StringBuilder sb )
         {
-            if( IsNullRef(sb) )
+            if( sb.NullReference() )
                 throw new ArgumentNullException(nameof(sb));
 
             sb.Append("   at ");
@@ -121,12 +122,6 @@ namespace Mechanical3.Misc
 
         private static readonly char[] DirectorySeparatorChars = new char[] { '\\', '/' };
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNullRef( object obj )
-        {
-            return object.ReferenceEquals(obj, null);
-        }
-
         /// <summary>
         /// Shortens the full source file path to only the file name.
         /// </summary>
@@ -136,7 +131,7 @@ namespace Mechanical3.Misc
         {
             // let's not expose the developer's directory structure!
             // (may contain sensitive information, like user names, ... etc.)
-            if( !IsNullRef(filePath) )
+            if( filePath.NotNullReference() )
             {
                 // System.IO.Path expects the directory separators
                 // of the platform this code is being run on. But code may

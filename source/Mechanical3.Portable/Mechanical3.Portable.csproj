@@ -39,9 +39,12 @@
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Core\CoreExtensions.cs" />
+    <Compile Include="Core\SafeString.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
+    <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -58,7 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Conditions\" />
-    <Folder Include="Core\" />
     <Folder Include="DataStores\" />
     <Folder Include="IO\FileSystems\" />
     <Folder Include="IO\Streams\" />
