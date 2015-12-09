@@ -45,6 +45,7 @@
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
+    <Compile Include="Misc\StringState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
