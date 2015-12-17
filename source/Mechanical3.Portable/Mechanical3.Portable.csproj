@@ -39,13 +39,16 @@
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Collections\EnumerableBase.cs" />
     <Compile Include="Core\CoreExtensions.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
+    <Compile Include="Misc\FileLineInfoCollection.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
+    <Compile Include="Misc\StringStateCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

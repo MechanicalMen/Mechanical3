@@ -37,7 +37,7 @@ namespace Mechanical3.Misc
         /// <summary>
         /// Records a named value.
         /// </summary>
-        /// <typeparam name="T">The type of the value to record.</typeparam>
+        /// <typeparam name="T">The type of value to record.</typeparam>
         /// <param name="name">The name of the value.</param>
         /// <param name="value">The value to record the string representation of.</param>
         /// <returns>An object representing the recorded value.</returns>

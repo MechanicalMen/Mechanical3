@@ -88,10 +88,10 @@ namespace Mechanical3.Misc
         #region Public Methods
 
         /// <summary>
-        /// Appends the string representation of this instance to the specified <see cref="StringBuilder"/>.
+        /// Converts this instance to a string, similar in format to <see cref="Exception.StackTrace"/>.
         /// </summary>
         /// <param name="sb">The <see cref="StringBuilder"/> to append to.</param>
-        public void ToString( StringBuilder sb )
+        public void ToStackTraceLine( StringBuilder sb )
         {
             if( sb.NullReference() )
                 throw new ArgumentNullException(nameof(sb));
@@ -105,6 +105,18 @@ namespace Mechanical3.Misc
         }
 
         /// <summary>
+        /// Converts this instance to a string, similar in format to <see cref="Exception.StackTrace"/>.
+        /// </summary>
+        /// <returns>A string representation of this instance.</returns>
+        public string ToStackTraceLine()
+        {
+            const int InitialCapacity = 32 + 64 + 64; // 64 characters for file and member names, 32 for everything else
+            var sb = new StringBuilder(InitialCapacity);
+            this.ToStackTraceLine(sb);
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Returns a string that represents this instance.
         /// </summary>
         /// <returns>A string that represents this instance.</returns>
@@ -112,7 +124,11 @@ namespace Mechanical3.Misc
         {
             const int InitialCapacity = 32 + 64 + 64; // 64 characters for file and member names, 32 for everything else
             var sb = new StringBuilder(InitialCapacity);
-            this.ToString(sb);
+            sb.Append(this.Member);
+            sb.Append(';');
+            sb.Append(this.Line.ToString("D", CultureInfo.InvariantCulture));
+            sb.Append(';');
+            sb.Append(this.File);
             return sb.ToString();
         }
 
@@ -149,6 +165,30 @@ namespace Mechanical3.Misc
             }
 
             return filePath;
+        }
+
+        /// <summary>
+        /// Parses the specified string into a <see cref="FileLineInfo"/> instance.
+        /// </summary>
+        /// <param name="str">The string representation of a <see cref="FileLineInfo"/> instance.</param>
+        /// <returns>A new <see cref="FileLineInfo"/> instance.</returns>
+        public static FileLineInfo Parse( string str )
+        {
+            if( str.NullReference() )
+                throw new ArgumentNullException(nameof(str));
+
+            int firstSemicolonAt = str.IndexOf(';');
+            if( firstSemicolonAt == -1 )
+                throw new FormatException();
+            string member = str.Substring(startIndex: 0, length: firstSemicolonAt);
+
+            int secondSemicolonAt = str.IndexOf(';', startIndex: firstSemicolonAt + 1);
+            if( secondSemicolonAt == -1 )
+                throw new FormatException();
+            int line = int.Parse(str.Substring(startIndex: firstSemicolonAt + 1, length: secondSemicolonAt - firstSemicolonAt - 1), NumberStyles.Integer, CultureInfo.InvariantCulture);
+            string file = str.Substring(startIndex: secondSemicolonAt + 1);
+
+            return new FileLineInfo(file, member, line);
         }
 
         #endregion

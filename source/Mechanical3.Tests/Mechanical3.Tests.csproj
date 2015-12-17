@@ -65,6 +65,7 @@
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />
     <Compile Include="Misc\StringFormatterTests.cs" />
+    <Compile Include="Misc\StringStateCollectionTests.cs" />
     <Compile Include="Misc\StringStateTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Test.cs" />
