@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Core\CoreExtensionTests.cs" />
     <Compile Include="Core\SafeStringTests.cs" />
+    <Compile Include="Core\StringPatternTests.cs" />
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />
     <Compile Include="Misc\StringFormatterTests.cs" />

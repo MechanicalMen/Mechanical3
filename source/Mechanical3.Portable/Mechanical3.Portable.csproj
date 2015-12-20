@@ -42,6 +42,7 @@
     <Compile Include="Collections\EnumerableBase.cs" />
     <Compile Include="Core\CoreExtensions.cs" />
     <Compile Include="Core\SafeString.cs" />
+    <Compile Include="Core\StringPattern.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\FileLineInfoCollection.cs" />
