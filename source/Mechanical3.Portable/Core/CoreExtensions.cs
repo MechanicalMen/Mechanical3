@@ -78,17 +78,6 @@ namespace Mechanical3.Core
 
         #region Exception
 
-        private static StringStateCollection GetStateCollection( Exception exception )
-        {
-            if( exception.NullReference() )
-                throw new ArgumentNullException(nameof(exception));
-
-            if( !exception.Data.Contains(nameof(StringStateCollection)) )
-                exception.Data.Add(nameof(StringStateCollection), new StringStateCollection());
-
-            return (StringStateCollection)exception.Data[nameof(StringStateCollection)];
-        }
-
         /// <summary>
         /// Gets the data stored in the exception.
         /// </summary>
@@ -99,16 +88,13 @@ namespace Mechanical3.Core
             if( exception.NullReference() )
                 throw new ArgumentNullException(nameof(exception));
 
-            if( exception.Data.Contains(nameof(StringStateCollection)) )
-                return (StringStateCollection)exception.Data[nameof(StringStateCollection)];
-            else
-                return null;
+            return new StringStateCollection(exception.Data);
         }
 
         private static TException AddState<TException>( TException e, StringState state )
             where TException : Exception
         {
-            var collection = GetStateCollection(e);
+            var collection = GetStoredData(e);
             collection.Add(state);
             return e;
         }
@@ -123,7 +109,7 @@ namespace Mechanical3.Core
         public static TException StoreFileLine<TException>( this TException e, FileLineInfo sourcePos )
             where TException : Exception
         {
-            var collection = GetStateCollection(e);
+            var collection = GetStoredData(e);
             collection.AddPartialStackTrace(sourcePos);
             return e;
         }
@@ -150,7 +136,7 @@ namespace Mechanical3.Core
         private static TException StoreFileLine_OnFirstCall<TException>( TException e, string file, string member, int line )
             where TException : Exception
         {
-            var collection = GetStateCollection(e);
+            var collection = GetStoredData(e);
             if( collection.HasPartialStackTrace )
             {
                 return StoreFileLine(e, file, member, line);

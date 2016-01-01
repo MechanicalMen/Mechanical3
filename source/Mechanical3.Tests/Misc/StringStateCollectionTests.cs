@@ -42,19 +42,16 @@ namespace Mechanical3.Tests.Misc
             var state2 = StringState.From("test2", 5);
 
             var collection = new StringStateCollection();
-            Assert.AreEqual(0, collection.Count);
             Assert.True(Equals(new StringState[0], collection.ToArray()));
 
             collection.Add(state1);
             Assert.True(collection.ContainsKey(state1.Name));
             Assert.False(collection.ContainsKey(state2.Name));
-            Assert.AreEqual(1, collection.Count);
             Assert.True(Equals(new StringState[] { state1 }, collection.ToArray()));
 
             collection.Add(state2);
             Assert.True(collection.ContainsKey(state1.Name));
             Assert.True(collection.ContainsKey(state2.Name));
-            Assert.AreEqual(2, collection.Count);
             Assert.True(Equals(new StringState[] { state1, state2 }, collection.ToArray()));
         }
 
@@ -69,7 +66,6 @@ namespace Mechanical3.Tests.Misc
             collection.Add(state);
             collection.Add(state3);
             Assert.True(collection.ContainsKey(state.Name));
-            Assert.AreEqual(3, collection.Count);
             var contents = new StringState[]
             {
                 state,
