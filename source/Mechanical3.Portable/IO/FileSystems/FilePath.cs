@@ -48,6 +48,32 @@ namespace Mechanical3.IO.FileSystems
             return new FilePath(abstractPath);
         }
 
+        /// <summary>
+        /// Creates a new <see cref="FilePath"/> instance, from a file name.
+        /// </summary>
+        /// <param name="fileName">The name of the file.</param>
+        /// <returns>The new <see cref="FilePath"/> instance.</returns>
+        public static FilePath FromFileName( string fileName )
+        {
+            if( !IsValidName(fileName) )
+                throw new ArgumentException("Invalid file name!").Store(nameof(fileName), fileName);
+
+            return new FilePath(fileName);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="FilePath"/> instance, from a directory name.
+        /// </summary>
+        /// <param name="directoryName">The name of the directory.</param>
+        /// <returns>The new <see cref="FilePath"/> instance.</returns>
+        public static FilePath FromDirectoryName( string directoryName )
+        {
+            if( !IsValidName(directoryName) )
+                throw new ArgumentException("Invalid directory name!").Store(nameof(directoryName), directoryName);
+
+            return new FilePath(directoryName + PathSeparator);
+        }
+
         #endregion
 
         #region Public Members

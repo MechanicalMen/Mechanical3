@@ -45,6 +45,10 @@
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IO\FileSystems\FilePath.cs" />
+    <Compile Include="IO\FileSystems\IFileSystem.cs" />
+    <Compile Include="IO\FileSystems\IFileSystemBase.cs" />
+    <Compile Include="IO\FileSystems\IFileSystemReader.cs" />
+    <Compile Include="IO\FileSystems\IFileSystemWriter.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\FileLineInfoCollection.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
@@ -68,7 +72,6 @@
   <ItemGroup>
     <Folder Include="Conditions\" />
     <Folder Include="DataStores\" />
-    <Folder Include="IO\Streams\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
