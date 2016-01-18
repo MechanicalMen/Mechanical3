@@ -6,7 +6,8 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Core
 {
-    public class SafeStringTests
+    [TestFixture(Category = "Core")]
+    public static class SafeStringTests
     {
         #region NonFormattableTestObject
 

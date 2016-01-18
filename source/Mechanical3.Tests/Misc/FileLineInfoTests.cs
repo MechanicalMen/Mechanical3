@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Misc
 {
+    [TestFixture(Category = "Misc")]
     public static class FileLineInfoTests
     {
         private static void CheckParse( FileLineInfo info )
@@ -20,9 +21,9 @@ namespace Mechanical3.Tests.Misc
             var info = FileLineInfo.Create();
             Test.OrdinalEquals("FileLineInfoTests.cs", info.File);
             Test.OrdinalEquals("DefaultParameterTest", info.Member);
-            Assert.AreEqual(20, info.Line);
-            Test.OrdinalEquals("   at DefaultParameterTest in FileLineInfoTests.cs:line 20", info.ToStackTraceLine());
-            Test.OrdinalEquals("DefaultParameterTest;20;FileLineInfoTests.cs", info.ToString());
+            Assert.AreEqual(21, info.Line);
+            Test.OrdinalEquals("   at DefaultParameterTest in FileLineInfoTests.cs:line 21", info.ToStackTraceLine());
+            Test.OrdinalEquals("DefaultParameterTest;21;FileLineInfoTests.cs", info.ToString());
             CheckParse(info);
         }
 

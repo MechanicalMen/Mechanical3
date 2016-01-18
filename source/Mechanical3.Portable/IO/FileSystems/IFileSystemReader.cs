@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using Mechanical3.Core;
 
 namespace Mechanical3.IO.FileSystems
 {
@@ -35,5 +37,49 @@ namespace Mechanical3.IO.FileSystems
         /// <param name="filePath">The file to get the size of.</param>
         /// <returns>The size of the specified file in bytes.</returns>
         long GetFileSize( FilePath filePath );
+    }
+
+    /// <content>
+    /// Methods extending the <see cref="IFileSystemReader"/> interface.
+    /// </content>
+    public static partial class FileSystemExtensions
+    {
+        #region Exists
+
+        /// <summary>
+        /// Determines whether the specifies file or directory exists.
+        /// </summary>
+        /// <param name="fileSystem">The file system to query.</param>
+        /// <param name="path">The path specifying the file or directory to search for.</param>
+        /// <returns><c>true</c> if the file or directory exists; otherwise, <c>false</c>.</returns>
+        public static bool Exists( this IFileSystem fileSystem, FilePath path )
+        {
+            if( fileSystem.NullReference() )
+                throw new ArgumentNullException(nameof(fileSystem)).StoreFileLine();
+
+            if( path.NullReference() )
+                throw new ArgumentNullException(nameof(path)).StoreFileLine();
+
+            var parentDirectory = path.Parent; // may be null
+            FilePath[] entries;
+            try
+            {
+                entries = fileSystem.GetPaths(parentDirectory);
+            }
+            catch( FileNotFoundException )
+            {
+                // directory not found
+                return false;
+            }
+            foreach( var entry in entries )
+            {
+                if( entry == path )
+                    return true;
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }

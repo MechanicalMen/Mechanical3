@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Collections\EnumerableBase.cs" />
     <Compile Include="Core\CoreExtensions.cs" />
+    <Compile Include="Core\DisposableObject.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="Events\EnqueuedEvent.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="IO\FileSystems\IFileSystemBase.cs" />
     <Compile Include="IO\FileSystems\IFileSystemReader.cs" />
     <Compile Include="IO\FileSystems\IFileSystemWriter.cs" />
+    <Compile Include="IO\FileSystems\MemoryFileSystem.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\FileLineInfoCollection.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />

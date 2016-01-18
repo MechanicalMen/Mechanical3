@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Misc
 {
+    [TestFixture(Category = "Misc")]
     public static class StringStateTests
     {
         [Test]

@@ -3,10 +3,11 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Core
 {
-    public class CoreExtensionTests
+    [TestFixture(Category = "Core")]
+    public static class CoreExtensionTests
     {
         [Test]
-        public void ObjectExtensionTests()
+        public static void ObjectExtensionTests()
         {
             var obj = new object();
             Assert.AreEqual(true, obj.NotNullReference());
@@ -18,7 +19,7 @@ namespace Mechanical3.Tests.Core
         }
 
         [Test]
-        public void StringExtensionTests()
+        public static void StringExtensionTests()
         {
             // NullOrEmpty
             Assert.True(((string)null).NullOrEmpty());

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Mechanical3.Core;
 
 namespace Mechanical3.IO.FileSystems
@@ -18,7 +19,7 @@ namespace Mechanical3.IO.FileSystems
     /// <summary>
     /// A platform independent file or directory path, used by the abstract file systems.
     /// </summary>
-    public class FilePath
+    public class FilePath : IEquatable<FilePath>
     {
         #region Private Fields
 
@@ -122,6 +123,20 @@ namespace Mechanical3.IO.FileSystems
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance has a parent directory.
+        /// </summary>
+        /// <value><c>true</c> if this instance has a parent directory; otherwise, <c>false</c>.</value>
+        public bool HasParent
+        {
+            get
+            {
+                int lastCharIndex = this.IsDirectory ? this.path.Length - 2 : this.path.Length - 1;
+                int separatorIndex = this.path.LastIndexOf(PathSeparator, lastCharIndex);
+                return separatorIndex != -1;
+            }
+        }
+
+        /// <summary>
         /// Gets the file extension.
         /// Returns <see cref="string.Empty"/> if there isn't one, or this is a directory.
         /// </summary>
@@ -170,9 +185,161 @@ namespace Mechanical3.IO.FileSystems
             return this.path;
         }
 
+        /// <summary>
+        /// Returns a <see cref="FilePath"/> that has the same abstract path as this instance, but always points to a directory.
+        /// </summary>
+        /// <returns>A <see cref="FilePath"/> that has the same abstract path as this instance, but always points to a directory.</returns>
+        public FilePath ToDirectoryPath()
+        {
+            if( this.IsDirectory )
+                return this;
+            else
+                return new FilePath(this.path + PathSeparator);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="FilePath"/> that has the same abstract path as this instance, but always points to a file.
+        /// </summary>
+        /// <returns>A <see cref="FilePath"/> that has the same abstract path as this instance, but always points to a file.</returns>
+        public FilePath ToFilePath()
+        {
+            if( this.IsDirectory )
+                return new FilePath(this.path.Substring(startIndex: 0, length: this.path.Length - 1));
+            else
+                return this;
+        }
+
+        /// <summary>
+        /// Determines whether this instance is the direct parent of the specified <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">The <see cref="FilePath"/> this instance may be a parent of.</param>
+        /// <returns><c>true</c> if this instance is the direct parent of the specified <paramref name="path"/>; otherwise, <c>false</c>.</returns>
+        public bool IsParentOf( FilePath path )
+        {
+            if( !this.IsDirectory )
+                return false;
+
+            int lastCharIndex = path.IsDirectory ? path.path.Length - 2 : path.path.Length - 1;
+            int separatorIndex = path.path.LastIndexOf(PathSeparator, lastCharIndex);
+            if( separatorIndex == -1 )
+                return false; // has no parent
+            else
+                return Equals(this.path, 0, this.path.Length - 1, path.path, 0, separatorIndex);
+        }
+
+        /// <summary>
+        /// Determines whether this instance is either the direct or indirect parent of the specified <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">The <see cref="FilePath"/> this instance may be a direct or indirect parent of.</param>
+        /// <returns><c>true</c> if this instance is either the direct or indirect parent of the specified <paramref name="path"/>; otherwise, <c>false</c>.</returns>
+        public bool IsAncestorOf( FilePath path )
+        {
+            if( !this.IsDirectory )
+                return false;
+
+            int lastCharIndex = path.IsDirectory ? path.path.Length - 2 : path.path.Length - 1;
+            int separatorIndex = path.path.LastIndexOf(PathSeparator, lastCharIndex);
+            while( separatorIndex != -1
+                && separatorIndex >= this.path.Length - 1 )
+            {
+                if( Equals(this.path, 0, this.path.Length - 1, path.path, 0, separatorIndex) )
+                    return true;
+
+                lastCharIndex = separatorIndex - 1;
+                separatorIndex = path.path.LastIndexOf(PathSeparator, lastCharIndex);
+            }
+
+            return false;
+        }
+
         #endregion
 
-        #region Operators
+        #region IEquatable
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare this object to.</param>
+        /// <returns><c>true</c> if the current object is equal to the <paramref name="other"/> parameter; otherwise, <c>false</c>.</returns>
+        public /*virtual*/ bool Equals( FilePath other )
+        {
+            /*
+            // in case we're overriding
+            if( !base.Equals( other ) )
+                return false;
+            */
+
+            // might not need this, if the base has checked it (or if 'other' is a value type)
+            if( other.NullReference() )
+                return false;
+
+            return Comparer.Equals(this.path, other.path);
+        }
+
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="left">The left  side of the operator.</param>
+        /// <param name="right">The right side of the operator.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator ==( FilePath left, FilePath right )
+        {
+            if( object.ReferenceEquals(left, right) )
+                return true;
+
+            if( left.NullReference() )
+                return false;
+
+            return left.Equals(right);
+        }
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="left">The left side of the operator.</param>
+        /// <param name="right">The right side of the operator.</param>
+        /// <returns>The result of the operator.</returns>
+        public static bool operator !=( FilePath left, FilePath right )
+        {
+            return !(left == right);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare this object to.</param>
+        /// <returns><c>true</c> if the current object is equal to the <paramref name="other"/> parameter; otherwise, <c>false</c>.</returns>
+        public override bool Equals( object other )
+        {
+            // for reference types
+            var asFilePath = other as FilePath;
+
+            if( asFilePath.NullReference() )
+                return false;
+            else
+                return this.Equals(asFilePath);
+
+            // for value types
+            /*if( other is MyType )
+                return this.Equals((MyType)other);
+            else
+                return false;*/
+        }
+
+        /// <summary>
+        /// Serves as a hash function for a particular type.
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="T:System.Object"/>.
+        /// </returns>
+        public override int GetHashCode()
+        {
+            return Comparer.GetHashCode(this.path);
+        }
+
+        #endregion
+
+        #region Other Operators
 
         /// <summary>
         /// Combines two paths.
@@ -195,6 +362,17 @@ namespace Mechanical3.IO.FileSystems
         #endregion
 
         #region Static Members
+
+        /// <summary>
+        /// The <see cref="StringComparer"/> to use on abstract paths.
+        /// </summary>
+        public static readonly StringComparer Comparer = StringComparer.Ordinal;
+
+        private static bool Equals( string str1, int startIndex1, int count1, string str2, int startIndex2, int count2 )
+        {
+            return CultureInfo.InvariantCulture.CompareInfo.Compare(str1, startIndex1, count1, str2, startIndex2, count2, CompareOptions.Ordinal) == 0;
+        }
+
 
         /// <summary>
         /// The character that separates the file names in a path from one another.

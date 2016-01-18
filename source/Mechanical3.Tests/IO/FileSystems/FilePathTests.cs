@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.IO.FileSystems
 {
+    [TestFixture(Category = "FileSystems")]
     public static class FilePathTests
     {
         [Test]
@@ -123,10 +124,14 @@ namespace Mechanical3.Tests.IO.FileSystems
         [Test]
         public static void ParentTests()
         {
+            Assert.False(FilePath.From("a").HasParent);
             Assert.Null(FilePath.From("a").Parent);
+            Assert.False(FilePath.From("a/").HasParent);
             Assert.Null(FilePath.From("a/").Parent);
 
+            Assert.True(FilePath.From("a/b").HasParent);
             Test.OrdinalEquals("a/", FilePath.From("a/b").Parent.ToString());
+            Assert.True(FilePath.From("a/b/c").HasParent);
             Test.OrdinalEquals("a/b/", FilePath.From("a/b/c").Parent.ToString());
         }
 
@@ -139,6 +144,63 @@ namespace Mechanical3.Tests.IO.FileSystems
             Assert.Throws<NullReferenceException>(() => (FilePath.From("a/") + (FilePath)null).NotNullReference());
             Assert.Throws<NullReferenceException>(() => ((FilePath)null + FilePath.From("b")).NotNullReference());
             Assert.Throws<InvalidOperationException>(() => (FilePath.From("a") + FilePath.From("b")).NotNullReference());
+        }
+
+        [Test]
+        public static void ToFileOrDirectoryPathTests()
+        {
+            Test.OrdinalEquals(FilePath.From("a").ToString(), FilePath.From("a").ToFilePath().ToString());
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a").ToDirectoryPath().ToString());
+
+            Test.OrdinalEquals(FilePath.From("a").ToString(), FilePath.From("a/").ToFilePath().ToString());
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/").ToDirectoryPath().ToString());
+        }
+
+        [Test]
+        public static void EqualityTests()
+        {
+            Assert.True(FilePath.From("a").Equals(FilePath.From("a")));
+            Assert.False(FilePath.From("a").Equals(FilePath.From("A")));
+            Assert.False(FilePath.From("a").Equals(FilePath.From("a/")));
+            Assert.False(FilePath.From("a").Equals(FilePath.From("b")));
+            Assert.False(FilePath.From("a").Equals(FilePath.From("aa")));
+            Assert.True(FilePath.From("a/b").Equals(FilePath.From("a/b")));
+            Assert.False(FilePath.From("a/").Equals(FilePath.From("a/b")));
+        }
+
+        [Test]
+        public static void IsParentOrAncestorOfTests()
+        {
+            // parent or ancestor of self is always false
+            // (independent of whether the path points to a file or directory)
+            Assert.False(FilePath.From("a").IsParentOf(FilePath.From("a")));
+            Assert.False(FilePath.From("a").IsAncestorOf(FilePath.From("a")));
+            Assert.False(FilePath.From("a").IsParentOf(FilePath.From("a/")));
+            Assert.False(FilePath.From("a").IsAncestorOf(FilePath.From("a/")));
+            Assert.False(FilePath.From("a/").IsParentOf(FilePath.From("a")));
+            Assert.False(FilePath.From("a/").IsAncestorOf(FilePath.From("a")));
+            Assert.False(FilePath.From("a/").IsParentOf(FilePath.From("a/")));
+            Assert.False(FilePath.From("a/").IsAncestorOf(FilePath.From("a/")));
+
+            // direct parents are always ancestors
+            Assert.True(FilePath.From("a/").IsParentOf(FilePath.From("a/b"))); // direct parent of file
+            Assert.True(FilePath.From("a/").IsAncestorOf(FilePath.From("a/b")));
+            Assert.False(FilePath.From("a").IsParentOf(FilePath.From("a/b")));
+            Assert.False(FilePath.From("a").IsAncestorOf(FilePath.From("a/b")));
+            Assert.True(FilePath.From("a/b/").IsParentOf(FilePath.From("a/b/c/"))); // direct parent of directory
+            Assert.True(FilePath.From("a/b/").IsAncestorOf(FilePath.From("a/b/c/")));
+            Assert.False(FilePath.From("a/b").IsParentOf(FilePath.From("a/b/c")));
+            Assert.False(FilePath.From("a/b").IsAncestorOf(FilePath.From("a/b/c")));
+
+            // indirect parents are only ancestors
+            Assert.False(FilePath.From("a/").IsParentOf(FilePath.From("a/b/c")));
+            Assert.True(FilePath.From("a/").IsAncestorOf(FilePath.From("a/b/c")));
+
+            // names from the middle of a path don't count as anything
+            Assert.False(FilePath.From("b").IsParentOf(FilePath.From("a/b/c")));
+            Assert.False(FilePath.From("b").IsAncestorOf(FilePath.From("a/b/c")));
+            Assert.False(FilePath.From("b/").IsParentOf(FilePath.From("a/b/c")));
+            Assert.False(FilePath.From("b/").IsAncestorOf(FilePath.From("a/b/c")));
         }
     }
 }

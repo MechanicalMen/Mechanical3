@@ -65,6 +65,9 @@
     <Compile Include="Core\StringPatternTests.cs" />
     <Compile Include="Events\ManualEventPumpTests.cs" />
     <Compile Include="IO\FileSystems\FilePathTests.cs" />
+    <Compile Include="IO\FileSystems\GenericFileSystemTests.cs" />
+    <Compile Include="IO\FileSystems\DirectoryFileSystemTests.cs" />
+    <Compile Include="IO\FileSystems\MemoryFileSystemTests.cs" />
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />
     <Compile Include="Misc\StringFormatterTests.cs" />
@@ -78,6 +81,10 @@
     <EmbeddedResource Include="testVersion.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Mechanical3.NET45\Mechanical3.NET45.csproj">
+      <Project>{92f660d0-a907-4764-9ef0-c30efc4dbfcd}</Project>
+      <Name>Mechanical3.NET45</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Mechanical3.Portable\Mechanical3.Portable.csproj">
       <Project>{ffadcb78-9fdc-40fb-a697-9ef972991ffe}</Project>
       <Name>Mechanical3.Portable</Name>

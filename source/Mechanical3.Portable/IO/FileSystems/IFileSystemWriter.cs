@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using Mechanical3.Core;
 
 namespace Mechanical3.IO.FileSystems
 {
@@ -26,5 +28,36 @@ namespace Mechanical3.IO.FileSystems
         /// <param name="overwriteIfExists"><c>true</c> to overwrite the file if it already exists; or <c>false</c> to throw an exception.</param>
         /// <returns>A <see cref="Stream"/> representing the file.</returns>
         Stream CreateFile( FilePath filePath, bool overwriteIfExists );
+    }
+
+    /// <content>
+    /// Methods extending the <see cref="IFileSystemWriter"/> interface.
+    /// </content>
+    public static partial class FileSystemExtensions
+    {
+        #region DeleteAllFrom
+
+        /// <summary>
+        /// Deletes all content from the specified directory.
+        /// The directory itself is not removed.
+        /// Does nothing if the directory does not exist.
+        /// </summary>
+        /// <param name="fileSystem">The file system to query.</param>
+        /// <param name="directoryPath">The path specifying the directory to delete all content from; or <c>null</c> to specify the root of this file system.</param>
+        public static void DeleteAllFrom( this IFileSystem fileSystem, FilePath directoryPath = null )
+        {
+            if( fileSystem.NullReference() )
+                throw new ArgumentNullException(nameof(fileSystem)).StoreFileLine();
+
+            if( directoryPath.NullReference()
+             || fileSystem.Exists(directoryPath) )
+            {
+                var entries = fileSystem.GetPaths(directoryPath);
+                foreach( var entry in entries )
+                    fileSystem.Delete(entry);
+            }
+        }
+
+        #endregion
     }
 }

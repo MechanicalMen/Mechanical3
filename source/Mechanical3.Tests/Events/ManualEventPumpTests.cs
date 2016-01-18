@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Mechanical3.Core;
 using Mechanical3.Events;
 using NUnit.Framework;
 
 namespace Mechanical3.Tests.Events
 {
+    [TestFixture(Category = "Events")]
     public static class ManualEventPumpTests
     {
         #region Helpers
@@ -25,11 +27,22 @@ namespace Mechanical3.Tests.Events
             }
         }
 
-        private class RequestNegationHandler : IEventHandler<EventQueueCloseRequestEvent>
+        private class DelegateHandler<T> : IEventHandler<T>
+            where T : EventBase
         {
-            public void Handle( EventQueueCloseRequestEvent evnt )
+            private readonly Action<T> handler;
+
+            public DelegateHandler( Action<T> handler )
             {
-                evnt.CanBeginClose = !evnt.CanBeginClose;
+                if( handler.NullReference() )
+                    throw new ArgumentNullException(nameof(handler)).StoreFileLine();
+
+                this.handler = handler;
+            }
+
+            public void Handle( T evnt )
+            {
+                this.handler(evnt);
             }
         }
 
@@ -72,7 +85,7 @@ namespace Mechanical3.Tests.Events
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(68, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(81, recorder.LastEvent.EnqueueSource.Value.Line);
             });
 
             // non-blocking, returns Task
@@ -90,7 +103,7 @@ namespace Mechanical3.Tests.Events
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(84, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(97, recorder.LastEvent.EnqueueSource.Value.Line);
             });
 
             // blocking, no return value
@@ -115,7 +128,7 @@ namespace Mechanical3.Tests.Events
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(112, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(125, recorder.LastEvent.EnqueueSource.Value.Line);
             });
         }
 
@@ -213,13 +226,13 @@ namespace Mechanical3.Tests.Events
             Assert.False(pump.HasEvents);
 
             // close request cancelling
-            var negationHandler = new RequestNegationHandler();
-            pump.Subscribe(negationHandler);
+            var cancelRequestHandler = new DelegateHandler<EventQueueCloseRequestEvent>(evnt => evnt.CanBeginClose = false);
+            pump.Subscribe(cancelRequestHandler);
             pump.RequestClose();
             pump.HandleAll();
             Assert.False(pump.IsClosed);
             Assert.False(pump.HasEvents);
-            pump.Unsubscribe(negationHandler);
+            pump.Unsubscribe(cancelRequestHandler);
 
             // multiple requests, without cancelling
             var requestRecorder = new EventRecorder<EventQueueCloseRequestEvent>();
@@ -239,6 +252,60 @@ namespace Mechanical3.Tests.Events
 
             var lastRequest = requestRecorder.LastEvent;
             Assert.True(object.ReferenceEquals(firstRequest, lastRequest));
+        }
+
+        [Test]
+        public static void HandlerExceptionTests()
+        {
+            Using(pump =>
+            {
+                var exceptionThrower = new DelegateHandler<TestEvent<int>>(evnt => { throw new TimeZoneNotFoundException(); });
+                pump.Subscribe(exceptionThrower);
+
+                // exception thrown normally
+                var handlerTask = Task.Factory.StartNew(() =>
+                {
+                    pump.WaitForEvent();
+                    pump.HandleOne();
+                });
+                Assert.Throws<TimeZoneNotFoundException>(() => pump.EnqueueAndWait(new TestEvent<int>()));
+
+                // exception reported via Task
+                var task = pump.EnqueueAndWaitAsync(new TestEvent<int>());
+                pump.HandleOne();
+                Assert.True(task.IsFaulted);
+                Assert.IsInstanceOf<TimeZoneNotFoundException>(task.Exception.InnerException);
+
+                // multiple unhandled exceptions are collected in an AggregateException
+                pump.Subscribe(new DelegateHandler<TestEvent<int>>(evnt => { throw new TimeZoneNotFoundException(); }));
+                task = pump.EnqueueAndWaitAsync(new TestEvent<int>());
+                pump.HandleOne();
+                Assert.True(task.IsFaulted);
+                Assert.IsInstanceOf<AggregateException>(task.Exception.InnerException);
+                pump.Unsubscribe(exceptionThrower); // remove the original exception thrower
+
+                // exception reported via UnhandledExceptionEvent
+                var exceptionRecorder = new EventRecorder<UnhandledExceptionEvent>();
+                pump.Subscribe(exceptionRecorder);
+
+                Assert.False(pump.HasEvents);
+                var testEvent = new TestEvent<int>();
+                pump.Enqueue(testEvent);
+                pump.HandleOne();
+
+                Assert.True(pump.HasEvents); // exception results in new event, that has to be handled separately, like all other events
+                Assert.Null(exceptionRecorder.LastEvent);
+                pump.HandleOne();
+                Assert.NotNull(exceptionRecorder.LastEvent);
+                Assert.IsInstanceOf<TimeZoneNotFoundException>(exceptionRecorder.LastEvent.Exception);
+
+                Assert.False(pump.IsClosed); // unhandled exceptions do not close the pump
+                Assert.False(pump.HasEvents);
+
+                Test.OrdinalEquals(testEvent.EnqueueSource.Value.File, exceptionRecorder.LastEvent.EnqueueSource.Value.File); // unhandled exceptions inherit the FileLineInfo of the original event
+                Test.OrdinalEquals(testEvent.EnqueueSource.Value.Member, exceptionRecorder.LastEvent.EnqueueSource.Value.Member);
+                Assert.AreEqual(testEvent.EnqueueSource.Value.Line, exceptionRecorder.LastEvent.EnqueueSource.Value.Line);
+            });
         }
     }
 }

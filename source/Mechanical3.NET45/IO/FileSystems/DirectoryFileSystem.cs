@@ -108,7 +108,7 @@ namespace Mechanical3.IO.FileSystems
                 string relativeHostPath;
                 foreach( var f in filesOrDirectories )
                 {
-                    relativeHostPath = f.Substring(startIndex: fullHostPath.Length + 1);
+                    relativeHostPath = f.Substring(startIndex: this.rootDirectoryFullPath.Length + 1);
                     results.Add(this.FromRelativeHostPath(relativeHostPath, isDirectory: getsDirectories));
                 }
             }
@@ -186,6 +186,10 @@ namespace Mechanical3.IO.FileSystems
                 if( directoryPath.NotNullReference()
                  && !directoryPath.IsDirectory )
                     throw new ArgumentException("Invalid directory path!").StoreFileLine();
+
+                if( directoryPath.NotNullReference()
+                 && !Directory.Exists(this.ToFullHostPath(directoryPath)) )
+                    throw new FileNotFoundException().StoreFileLine(); // NOTE: a DirectoryNotFound exception would be nicer, but unfortunately it is not supported by the portable library
 
                 var list = new List<FilePath>();
                 this.AddNames(list, directoryPath, path => Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly), getsDirectories: false);

@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Misc
 {
+    [TestFixture(Category = "Misc")]
     public static class StringStateCollectionTests
     {
         private static bool Equals( StringState s1, StringState s2 )

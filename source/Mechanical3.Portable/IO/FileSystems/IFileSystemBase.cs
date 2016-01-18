@@ -21,4 +21,11 @@ namespace Mechanical3.IO.FileSystems
         /// <returns>The string the underlying system uses to represent the specified <paramref name="path"/>.</returns>
         string ToHostPath( FilePath path );
     }
+
+    /// <summary>
+    /// Extension methods for the <see cref="Mechanical3.IO.FileSystems"/> namespace.
+    /// </summary>
+    public static partial class FileSystemExtensions
+    {
+    }
 }

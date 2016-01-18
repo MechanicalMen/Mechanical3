@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Mechanical3.Tests.Core
 {
+    [TestFixture(Category = "Core")]
     public static class StringPatternTests
     {
         [Test]
