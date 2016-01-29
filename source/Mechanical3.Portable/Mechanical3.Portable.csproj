@@ -45,6 +45,7 @@
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="DataStores\DataStore.cs" />
+    <Compile Include="DataStores\ISO8601Converter.cs" />
     <Compile Include="DataStores\RoundTripStringConverter.cs" />
     <Compile Include="DataStores\IStringConverter.cs" />
     <Compile Include="DataStores\IStringConverterLocator.cs" />

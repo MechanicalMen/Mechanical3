@@ -7,7 +7,9 @@ namespace Mechanical3.Tests.DataStores
     [TestFixture(Category = "DataStores")]
     public static class RoundTripStringConverterTests
     {
-        private static void ToStringParse<T>( T obj, string str, IStringConverter<T> converter )
+        #region Internal Static Methods
+
+        internal static void ToStringParse<T>( T obj, string str, IStringConverter<T> converter )
         {
             Assert.NotNull(converter);
 
@@ -18,7 +20,7 @@ namespace Mechanical3.Tests.DataStores
             Assert.AreEqual((object)obj, (object)asObj);
         }
 
-        private static void TryParseFails<T>( string str, IStringConverter<T> converter )
+        internal static void TryParseFails<T>( string str, IStringConverter<T> converter )
         {
             Assert.NotNull(converter);
 
@@ -26,7 +28,7 @@ namespace Mechanical3.Tests.DataStores
             Assert.False(converter.TryParse(str, out result));
         }
 
-        private static void TryParseSucceeds<T>( string str, IStringConverter<T> converter )
+        internal static void TryParseSucceeds<T>( string str, IStringConverter<T> converter )
         {
             Assert.NotNull(converter);
 
@@ -34,13 +36,15 @@ namespace Mechanical3.Tests.DataStores
             Assert.True(converter.TryParse(str, out result));
         }
 
-        private static void GeneralTryParseTests<T>( IStringConverter<T> converter )
+        internal static void GeneralTryParseTests<T>( IStringConverter<T> converter )
         {
             TryParseFails(null, converter);
             TryParseFails(string.Empty, converter);
             TryParseFails("a", converter);
             TryParseFails(" ", converter);
         }
+
+        #endregion
 
         [Test]
         public static void RoundTripConverterTests()
@@ -191,8 +195,10 @@ namespace Mechanical3.Tests.DataStores
             Func<DateTime, DateTime> toUtc = dt => new DateTime(dt.Ticks, DateTimeKind.Utc);
             ToStringParse<DateTime>(toUtc(DateTime.MaxValue), " 9999-12-31T23:59:59.9999999Z ", dateTimeConverter);
             ToStringParse<DateTime>(toUtc(DateTime.MinValue), "0001-01-01T00:00:00.0000000Z", dateTimeConverter);
+            Assert.AreEqual(DateTimeKind.Utc, DataStore.Parse(dateTimeConverter.ToString(DateTime.Now), dateTimeConverter).Kind); // Local converted to Utc
             TryParseFails("10000-01-01T00:00:00.0000000Z", dateTimeConverter);
             TryParseFails("0000-12-31T23:59:59.9999999Z", dateTimeConverter);
+            Assert.Throws<ArgumentException>(() => dateTimeConverter.ToString(new DateTime(DateTime.UtcNow.Ticks, DateTimeKind.Unspecified))); // Unspecified throws
             GeneralTryParseTests(dateTimeConverter);
 
             // DateTimeOffset
