@@ -44,6 +44,10 @@
     <Compile Include="Core\DisposableObject.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
+    <Compile Include="DataStores\DataStore.cs" />
+    <Compile Include="DataStores\RoundTripStringConverter.cs" />
+    <Compile Include="DataStores\IStringConverter.cs" />
+    <Compile Include="DataStores\IStringConverterLocator.cs" />
     <Compile Include="Events\EnqueuedEvent.cs" />
     <Compile Include="Events\EventBase.cs" />
     <Compile Include="Events\EventQueueClosedEvent.cs" />
@@ -66,6 +70,7 @@
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\FileLineInfoCollection.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
+    <Compile Include="DataStores\StringConverterCollection.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
     <Compile Include="Misc\StringStateCollection.cs" />
@@ -85,7 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Conditions\" />
-    <Folder Include="DataStores\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>
