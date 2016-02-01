@@ -68,6 +68,7 @@
     <Compile Include="DataStores\RoundTripStringConverterTests.cs" />
     <Compile Include="DataStores\StringConverterCollectionTests.cs" />
     <Compile Include="Events\ManualEventPumpTests.cs" />
+    <Compile Include="Events\TaskEventQueueTests.cs" />
     <Compile Include="IO\FileSystems\FilePathTests.cs" />
     <Compile Include="IO\FileSystems\GenericFileSystemTests.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystemTests.cs" />

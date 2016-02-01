@@ -60,6 +60,7 @@
     <Compile Include="Events\IEventHandler.cs" />
     <Compile Include="Events\IEventQueue.cs" />
     <Compile Include="Events\ManualEventPump.cs" />
+    <Compile Include="Events\TaskEventQueue.cs" />
     <Compile Include="Events\UnhandledExceptionEvent.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IO\FileSystems\FilePath.cs" />

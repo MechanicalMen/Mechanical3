@@ -11,12 +11,12 @@ namespace Mechanical3.Tests.Events
     {
         #region Helpers
 
-        private class TestEvent<T> : EventBase
+        internal class TestEvent<T> : EventBase
         {
             public T Value { get; private set; } = default(T);
         }
 
-        private class EventRecorder<T> : IEventHandler<T>
+        internal class EventRecorder<T> : IEventHandler<T>
             where T : EventBase
         {
             public T LastEvent { get; private set; } = null;
