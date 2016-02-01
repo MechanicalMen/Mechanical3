@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Mechanical3.Core;
 
 namespace Mechanical3.DataStores
@@ -8,6 +9,50 @@ namespace Mechanical3.DataStores
     /// </summary>
     public static class DataStore
     {
+        #region IsValidName
+
+        /// <summary>
+        /// Determines whether the specified string is a valid data store name.
+        /// </summary>
+        /// <param name="name">The string to examine.</param>
+        /// <returns><c>true</c> if the specified string is a valid data store name; otherwise, <c>false</c>.</returns>
+        public static bool IsValidName( string name )
+        {
+            if( name.NullOrEmpty() )
+                return false;
+
+            if( name.Length > 255 ) // max. file name length
+                return false;
+
+            if( !IsValidFirstCharacter(name[0]) )
+                return false;
+
+            for( int i = 1; i < name.Length; ++i )
+            {
+                if( !IsValidMiddleCharacter(name[i]) )
+                    return false;
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsValidFirstCharacter( char ch )
+        {
+            return ('a' <= ch && ch <= 'z')
+                || ('A' <= ch && ch <= 'Z')
+                || ch == '_';
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsValidMiddleCharacter( char ch )
+        {
+            return IsValidFirstCharacter(ch)
+                || ('0' <= ch && ch <= '9');
+        }
+
+        #endregion
+
         #region ToString, TryParse, Parse
 
         /// <summary>
@@ -54,7 +99,16 @@ namespace Mechanical3.DataStores
             if( locator.NullReference() )
                 locator = RoundTripStringConverter.Locator;
 
-            var converter = locator.GetConverter<T>();
+            IStringConverter<T> converter;
+            try
+            {
+                converter = locator.GetConverter<T>();
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
             return converter.TryParse(str, out obj);
         }
 
@@ -92,8 +146,12 @@ namespace Mechanical3.DataStores
             if( str.NullReference() )
                 throw new ArgumentNullException(nameof(str)).StoreFileLine();
 
+            if( locator.NullReference() )
+                locator = RoundTripStringConverter.Locator;
+
             T result;
-            if( TryParse(str, out result) )
+            var converter = locator.GetConverter<T>();
+            if( converter.TryParse(str, out result) )
                 return result;
             else
                 throw new FormatException().Store(nameof(str), str);

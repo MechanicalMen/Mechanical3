@@ -63,6 +63,7 @@
     <Compile Include="Core\CoreExtensionTests.cs" />
     <Compile Include="Core\SafeStringTests.cs" />
     <Compile Include="Core\StringPatternTests.cs" />
+    <Compile Include="DataStores\DataStoreTests.cs" />
     <Compile Include="DataStores\ISO8601ConverterTests.cs" />
     <Compile Include="DataStores\RoundTripStringConverterTests.cs" />
     <Compile Include="DataStores\StringConverterCollectionTests.cs" />
