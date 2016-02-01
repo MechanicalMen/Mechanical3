@@ -93,10 +93,12 @@ namespace Mechanical3.Events
         /// Once it is handled, no more events may be enqueued.
         /// The last event handled by the queue will be an <see cref="EventQueueClosedEvent"/>.
         /// </summary>
+        /// <param name="timeLimit">Indicates to handlers that closing the application must happen as soon as possible.</param>
         /// <param name="file">The source file that contains the caller.</param>
         /// <param name="member">The method or property name of the caller to this method.</param>
         /// <param name="line">The line number in the source file at which this method is called.</param>
         void BeginClose(
+            bool timeLimit = false,
             [CallerFilePath] string file = "",
             [CallerMemberName] string member = "",
             [CallerLineNumber] int line = 0 );
