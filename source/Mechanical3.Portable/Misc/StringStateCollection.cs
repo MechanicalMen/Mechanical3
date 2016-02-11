@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using Mechanical3.Collections;
 using Mechanical3.Core;
 
@@ -13,17 +14,14 @@ namespace Mechanical3.Misc
      *       - DataContract is, but appearantly it's not good enough
      *
      * Options:
-     *       - Wrap every single exception in a "StringStateCollectionException":
+     *       - Wrap every single exception in a "StringStateCollectionException" that has a property for this:
      *         this will complicate the exception hierarchy really fast
-     *       - Serialize and deserialize the collection into a string each time it's accessed:
+     *       - Serialize and deserialize the collection into a string each time it's accessed (and store in a single key):
      *         apart from the performance, this requires some kind of manual serialization code
      *         (but since this is a low level class, it should only depend on the .NET Framework)
      *       - Use the IDictionary of Exception.Data directly:
      *         internal state will be accessible to everyone
      */
-
-    //// NOTE: This type was not designed for performance. Things could be improved by
-    ////       switching from a wrapper to static methods, but for now there is no need to optimize.
 
     /// <summary>
     /// Represents a collection of <see cref="StringState"/> instances.
@@ -151,7 +149,7 @@ namespace Mechanical3.Misc
         public void Add( StringState state )
         {
             if( state.Value.NullReference() )
-                throw new ArgumentNullException(nameof(state)); // created by default struct constructor
+                throw new ArgumentNullException(nameof(state)).StoreFileLine();
 
             // we do not allow overwriting of earlier data
             string name = state.Name;
@@ -179,11 +177,11 @@ namespace Mechanical3.Misc
         /// Gets the (accumulated) partial stack trace.
         /// </summary>
         /// <returns>The (accumulated) partial stack trace found.</returns>
-        public FileLineInfoCollection GetPartialStackTrace()
+        public StackTraceInfo GetPartialStackTrace()
         {
             StringState state;
             if( this.TryGetState(PartialStackTrace, out state) )
-                return FileLineInfoCollection.Parse(state.Value);
+                return StackTraceInfo.From(state.Value);
             else
                 return null;
         }
@@ -194,17 +192,25 @@ namespace Mechanical3.Misc
         /// <param name="sourcePos">The source position to append to the partial stack trace.</param>
         public void AddPartialStackTrace( FileLineInfo sourcePos )
         {
-            // get collection
-            var collection = this.GetPartialStackTrace() ?? new FileLineInfoCollection();
+            // append to stack trace
+            StringState state;
+            string newValue;
+            if( this.TryGetState(PartialStackTrace, out state) )
+            {
+                var sb = new StringBuilder(state.Value);
+                StackTraceInfo.AppendStackFrame(sb, sourcePos);
+                newValue = sb.ToString();
+            }
+            else
+            {
+                newValue = sourcePos.ToString();
+            }
 
-            // add new item
-            collection.Add(sourcePos);
-
-            // update partial stack trace
-            var state = new StringState(
-                    name: PartialStackTrace,
-                    value: collection.ToString(),
-                    valueType: SafeString.DebugPrint(typeof(FileLineInfoCollection)));
+            // update stored value
+            state = new StringState(
+                name: PartialStackTrace,
+                value: newValue,
+                valueType: Mechanical3.Core.SafeString.DebugPrint(typeof(StackTraceInfo)));
             this.AddOrSet(state);
         }
 

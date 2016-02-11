@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Mechanical3.Core;
 using Mechanical3.Misc;
 using NUnit.Framework;
 
@@ -184,6 +185,19 @@ namespace Mechanical3.Tests.Misc
             Test.OrdinalEquals("void Mechanical3.Tests.Misc.StringFormatterTests.GenericTestMethod<int, T2>()", ToString(formatter, genericTestMethod_GenericDefinition.MakeGenericMethod(typeof(int), genericTestMethod_GenericDefinition.GetGenericArguments()[1])));
             Test.OrdinalEquals("Mechanical3.Tests.Misc.StringFormatterTests.Nested1.ctor()", ToString(formatter, typeof(StringFormatterTests.Nested1).GetConstructors().Where(ctor => ctor.GetParameters().Length == 0).First()));
             Test.OrdinalEquals("Mechanical3.Tests.Misc.StringFormatterTests.Nested1.ctor(int i)", ToString(formatter, typeof(StringFormatterTests.Nested1).GetConstructors().Where(ctor => ctor.GetParameters().Length == 1).First()));
+
+            // Exception, ExceptionInfo
+            var exception = new Exception("test message").Store("testValue", 3); // see ExceptionInfo tests for further details
+            string exceptionString = @"Type: Exception
+Message: test message
+Data:
+  testValue = 3"; // Exception.ToString has no "Data" part
+            Test.OrdinalEquals(exceptionString, ToString(formatter, exception));
+            Test.OrdinalEquals(exceptionString, ToString(formatter, new ExceptionInfo(exception)));
+
+            // nullable
+            Test.OrdinalEquals("3.14f", ToString(formatter, (float?)3.14f));
+            Test.OrdinalEquals("null", ToString(formatter, (float?)null));
         }
     }
 }

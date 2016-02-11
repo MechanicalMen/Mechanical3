@@ -638,7 +638,11 @@ namespace Mechanical3.Misc
                 }
                 else if( arg is Exception )
                 {
-                    formattedArg = ((Exception)arg).ToString();
+                    formattedArg = new ExceptionInfo((Exception)arg).ToString();
+                }
+                else if( arg is ExceptionInfo )
+                {
+                    formattedArg = ((ExceptionInfo)arg).ToString();
                 }
                 else if( arg is DateTime )
                 {

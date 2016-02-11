@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mechanical3.Core;
 
 namespace Mechanical3.Misc
 {
-    //// NOTE: code here should depend only on the .NET framework!
-
     /// <summary>
     /// Represents a line in a source file.
     /// Only the file name is stored (instead of the full path).
@@ -25,22 +22,16 @@ namespace Mechanical3.Misc
         /// <param name="file">The source file that contains the caller.</param>
         /// <param name="member">The method or property name of the caller to this method.</param>
         /// <param name="line">The line number in the source file at which this method is called.</param>
-        public FileLineInfo( string file, string member, int line )
+        public FileLineInfo( string file, string member, int? line )
         {
-            if( file.NullReference()
-             || member.NullReference()
-             || line < 0 )
-            {
-                throw new ArgumentException(
-                    string.Format( // NOTE: intentionally not using validation or SafeString
-                        CultureInfo.InvariantCulture,
-                        "Invalid arguments! (file: {0}; member: {1}; line: {2}",
-                        file.NullReference() ? "<null>" : '"' + file + '"',
-                        member.NullReference() ? "<null>" : '"' + member + '"',
-                        line));
-            }
+            if( member.NullOrWhiteSpace() )
+                throw new ArgumentException().Store(nameof(member), member);
 
-            this.File = ToFileName(file).Trim();
+            if( line.HasValue
+             && line < 0 )
+                throw new ArgumentOutOfRangeException(nameof(line)).Store(nameof(line), line);
+
+            this.File = file.NullOrWhiteSpace() ? null : ToFileName(file)?.Trim();
             this.Member = member.Trim();
             this.Line = line;
         }
@@ -81,73 +72,36 @@ namespace Mechanical3.Misc
         /// Gets the line in the source file that this instance points to.
         /// </summary>
         /// <value>The line in the source file that this instance points to.</value>
-        public int Line { get; }
+        public int? Line { get; }
 
         #endregion
 
         #region Public Methods
 
         /// <summary>
-        /// Converts this instance to a string, similar in format to <see cref="Exception.StackTrace"/>.
+        /// Returns a stack frame string that represents this instance.
         /// </summary>
-        /// <param name="sb">The <see cref="StringBuilder"/> to append to.</param>
-        public void ToStackTraceLine( StringBuilder sb )
-        {
-            if( sb.NullReference() )
-                throw new ArgumentNullException(nameof(sb));
-
-            sb.Append("   at ");
-            sb.Append(string.IsNullOrEmpty(this.Member) ? "?" : this.Member);
-            sb.Append(" in ");
-            sb.Append(string.IsNullOrEmpty(this.File) ? "?" : this.File);
-            sb.Append(":line ");
-            sb.Append(this.Line.ToString("D", CultureInfo.InvariantCulture));
-        }
-
-        /// <summary>
-        /// Converts this instance to a string, similar in format to <see cref="Exception.StackTrace"/>.
-        /// </summary>
-        /// <returns>A string representation of this instance.</returns>
-        public string ToStackTraceLine()
-        {
-            const int InitialCapacity = 32 + 64 + 64; // 64 characters for file and member names, 32 for everything else
-            var sb = new StringBuilder(InitialCapacity);
-            this.ToStackTraceLine(sb);
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Returns a string that represents this instance.
-        /// </summary>
-        /// <returns>A string that represents this instance.</returns>
+        /// <returns>A stack frame string that represents this instance.</returns>
         public override string ToString()
         {
             const int InitialCapacity = 32 + 64 + 64; // 64 characters for file and member names, 32 for everything else
             var sb = new StringBuilder(InitialCapacity);
-            sb.Append(this.Member);
-            sb.Append(';');
-            sb.Append(this.Line.ToString("D", CultureInfo.InvariantCulture));
-            sb.Append(';');
-            sb.Append(this.File);
+            StackTraceInfo.AppendStackFrame(sb, this);
             return sb.ToString();
         }
 
         #endregion
 
-        #region Static Members
+        #region Private Static Members
 
         private static readonly char[] DirectorySeparatorChars = new char[] { '\\', '/' };
 
-        /// <summary>
-        /// Shortens the full source file path to only the file name.
-        /// </summary>
-        /// <param name="filePath">The full source file path to shorten.</param>
-        /// <returns>The source file name.</returns>
-        public static string ToFileName( [CallerFilePath] string filePath = "" )
+        private static string ToFileName( string filePath )
         {
-            // let's not expose the developer's directory structure!
-            // (may contain sensitive information, like user names, ... etc.)
-            if( filePath.NotNullReference() )
+            //// let's not expose the developer's directory structure!
+            //// (may contain sensitive information, like user names, ... etc.)
+
+            if( !filePath.NullOrWhiteSpace() )
             {
                 // System.IO.Path expects the directory separators
                 // of the platform this code is being run on. But code may
@@ -165,30 +119,6 @@ namespace Mechanical3.Misc
             }
 
             return filePath;
-        }
-
-        /// <summary>
-        /// Parses the specified string into a <see cref="FileLineInfo"/> instance.
-        /// </summary>
-        /// <param name="str">The string representation of a <see cref="FileLineInfo"/> instance.</param>
-        /// <returns>A new <see cref="FileLineInfo"/> instance.</returns>
-        public static FileLineInfo Parse( string str )
-        {
-            if( str.NullReference() )
-                throw new ArgumentNullException(nameof(str));
-
-            int firstSemicolonAt = str.IndexOf(';');
-            if( firstSemicolonAt == -1 )
-                throw new FormatException();
-            string member = str.Substring(startIndex: 0, length: firstSemicolonAt);
-
-            int secondSemicolonAt = str.IndexOf(';', startIndex: firstSemicolonAt + 1);
-            if( secondSemicolonAt == -1 )
-                throw new FormatException();
-            int line = int.Parse(str.Substring(startIndex: firstSemicolonAt + 1, length: secondSemicolonAt - firstSemicolonAt - 1), NumberStyles.Integer, CultureInfo.InvariantCulture);
-            string file = str.Substring(startIndex: secondSemicolonAt + 1);
-
-            return new FileLineInfo(file, member, line);
         }
 
         #endregion

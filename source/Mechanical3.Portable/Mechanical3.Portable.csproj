@@ -42,6 +42,7 @@
     <Compile Include="Collections\EnumerableBase.cs" />
     <Compile Include="Core\CoreExtensions.cs" />
     <Compile Include="Core\DisposableObject.cs" />
+    <Compile Include="Core\Log.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="DataStores\DataStore.cs" />
@@ -69,10 +70,15 @@
     <Compile Include="IO\FileSystems\IFileSystemReader.cs" />
     <Compile Include="IO\FileSystems\IFileSystemWriter.cs" />
     <Compile Include="IO\FileSystems\MemoryFileSystem.cs" />
+    <Compile Include="Loggers\ILogger.cs" />
+    <Compile Include="Loggers\LogEntry.cs" />
+    <Compile Include="Loggers\LogLevel.cs" />
+    <Compile Include="Loggers\MemoryLogger.cs" />
+    <Compile Include="Misc\ExceptionInfo.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
-    <Compile Include="Misc\FileLineInfoCollection.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="DataStores\StringConverterCollection.cs" />
+    <Compile Include="Misc\StackTraceInfo.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
     <Compile Include="Misc\StringStateCollection.cs" />
@@ -92,6 +98,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Conditions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>

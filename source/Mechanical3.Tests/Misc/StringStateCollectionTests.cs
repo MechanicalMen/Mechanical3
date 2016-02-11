@@ -92,13 +92,13 @@ namespace Mechanical3.Tests.Misc
             collection.AddPartialStackTrace(info1);
             Assert.True(collection.HasPartialStackTrace);
             Assert.True(collection.ContainsKey("PartialStackTrace"));
-            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString(), "Mechanical3.Misc.FileLineInfoCollection") }, collection.ToArray()));
+            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString(), "Mechanical3.Misc.StackTraceInfo") }, collection.ToArray()));
 
             var info2 = new FileLineInfo("Test2.cs", "Test2", 2);
             collection.AddPartialStackTrace(info2);
             Assert.True(collection.HasPartialStackTrace);
             Assert.True(collection.ContainsKey("PartialStackTrace"));
-            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString() + '\n' + info2.ToString(), "Mechanical3.Misc.FileLineInfoCollection") }, collection.ToArray()));
+            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString() + "\r\n" + info2.ToString(), "Mechanical3.Misc.StackTraceInfo") }, collection.ToArray()));
         }
     }
 }

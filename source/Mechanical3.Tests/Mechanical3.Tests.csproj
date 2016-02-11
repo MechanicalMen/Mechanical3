@@ -11,6 +11,7 @@
     <AssemblyName>Mechanical3.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,6 +52,10 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -60,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\LogTests.cs" />
     <Compile Include="Core\CoreExtensionTests.cs" />
     <Compile Include="Core\SafeStringTests.cs" />
     <Compile Include="Core\StringPatternTests.cs" />
@@ -73,8 +79,10 @@
     <Compile Include="IO\FileSystems\GenericFileSystemTests.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystemTests.cs" />
     <Compile Include="IO\FileSystems\MemoryFileSystemTests.cs" />
+    <Compile Include="Misc\ExceptionInfoTests.cs" />
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />
+    <Compile Include="Misc\StackTraceInfoTests.cs" />
     <Compile Include="Misc\StringFormatterTests.cs" />
     <Compile Include="Misc\StringStateCollectionTests.cs" />
     <Compile Include="Misc\StringStateTests.cs" />
