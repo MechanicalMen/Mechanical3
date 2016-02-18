@@ -43,6 +43,7 @@
     <Compile Include="Core\CoreExtensions.cs" />
     <Compile Include="Core\DisposableObject.cs" />
     <Compile Include="Core\Log.cs" />
+    <Compile Include="Core\MechanicalApp.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="DataStores\DataStore.cs" />

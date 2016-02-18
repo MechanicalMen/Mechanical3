@@ -172,6 +172,15 @@ namespace Mechanical3.Events
             this.eventPump.BeginClose(timeLimit, file, member, line);
         }
 
+        /// <summary>
+        /// Blocks the calling thread, until <see cref="EventQueueClosedEvent"/> has finished handling
+        /// and this instance has released it's resources.
+        /// </summary>
+        public void WaitForClosed()
+        {
+            this.eventPump.WaitForClosed();
+        }
+
         #endregion
     }
 }

@@ -32,13 +32,9 @@ namespace Mechanical3.Core
 
         private class EventHandler : IEventHandler<EventQueueClosedEvent>
         {
-            internal event Action EventQueueClosed;
-
             public void Handle( EventQueueClosedEvent evnt )
             {
-                var handlers = this.EventQueueClosed;
-                if( handlers.NotNullReference() )
-                    handlers();
+                Log.SetLogger(new ExceptionLogger());
             }
         }
 
@@ -66,11 +62,6 @@ namespace Mechanical3.Core
         {
             if( currentLogger is ExceptionLogger )
                 throw new ObjectDisposedException(message: "Logging is only possible before the main event queue's EventQueueClosedEvent starts being handled!", innerException: null);
-        }
-
-        private static void OnEventQueueClosed()
-        {
-            SetLogger(new ExceptionLogger());
         }
 
         private static void DoLog(
@@ -119,7 +110,6 @@ namespace Mechanical3.Core
                     throw new InvalidOperationException("Already initialized!").StoreFileLine();
 
                 // register event handlers
-                Events.EventQueueClosed += OnEventQueueClosed;
                 mainEventQueue.Subscribe<EventQueueClosedEvent>(Events);
 
                 // set up memory logger

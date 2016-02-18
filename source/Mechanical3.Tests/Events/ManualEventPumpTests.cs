@@ -307,5 +307,40 @@ namespace Mechanical3.Tests.Events
                 Assert.AreEqual(testEvent.EnqueueSource.Value.Line, exceptionRecorder.LastEvent.EnqueueSource.Value.Line);
             });
         }
+
+        [Test]
+        public static void WaitForClosedTests()
+        {
+            var pump = new ManualEventPump();
+            var waitingTask = Task.Factory.StartNew(() =>
+            {
+                pump.WaitForClosed();
+            });
+
+            // blocked by default
+            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            Assert.False(waitingTask.IsCompleted);
+
+            // handling events does not unblock it
+            pump.Enqueue(new TestEvent<int>());
+            pump.HandleOne();
+            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            Assert.False(waitingTask.IsCompleted);
+
+            // closing event does not unblock it
+            pump.BeginClose();
+            pump.HandleOne();
+            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            Assert.False(waitingTask.IsCompleted);
+
+            // unblocked after closed event has been handled
+            pump.HandleOne();
+            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            Assert.True(pump.IsClosed);
+            Assert.True(waitingTask.IsCompleted);
+
+            // does not block afterwards
+            pump.WaitForClosed();
+        }
     }
 }

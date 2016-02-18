@@ -102,5 +102,11 @@ namespace Mechanical3.Events
             [CallerFilePath] string file = "",
             [CallerMemberName] string member = "",
             [CallerLineNumber] int line = 0 );
+
+        /// <summary>
+        /// Blocks the calling thread, until <see cref="EventQueueClosedEvent"/> has finished handling
+        /// and this instance has released it's resources.
+        /// </summary>
+        void WaitForClosed();
     }
 }

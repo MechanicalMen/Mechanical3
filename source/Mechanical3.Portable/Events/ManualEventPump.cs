@@ -26,6 +26,7 @@ namespace Mechanical3.Events
         private readonly EventSubscriberCollection subscribers;
         private readonly List<EnqueuedEvent> events; // a FIFO queue
         private readonly ManualResetEventSlim eventsAvailableWaitHandle;
+        private readonly ManualResetEventSlim finishedWaitHandle;
         private int status = STATUS_OPEN;
 
         #endregion
@@ -40,6 +41,7 @@ namespace Mechanical3.Events
             this.subscribers = new EventSubscriberCollection();
             this.events = new List<EnqueuedEvent>();
             this.eventsAvailableWaitHandle = new ManualResetEventSlim(initialState: false); // nonsignaled, blocks
+            this.finishedWaitHandle = new ManualResetEventSlim(initialState: false); // nonsignaled, blocks
         }
 
         #endregion
@@ -61,7 +63,7 @@ namespace Mechanical3.Events
                     // No more close requests are enqueued after this (see above).
                     // Existing close events are removed now.
                     // Other events are still OK, while this is being handled (but not afterwards).
-                    lock ( this.eventsLock )
+                    lock( this.eventsLock )
                     {
                         // NOTE: we don't simply keep them and ignore them instead of letting them be handled
                         //       so that the 'events.Count' (and through it 'HasEvents') stays correct
@@ -111,11 +113,14 @@ namespace Mechanical3.Events
             {
                 if( Interlocked.CompareExchange(ref this.status, STATUS_CLOSED, comparand: STATUS_CLOSED_ENQUEUED) != STATUS_CLOSED_ENQUEUED )
                     throw new Exception("Invalid internal state!").Store(nameof(this.status), this.status);
-
-                // release resources
-                this.subscribers.Clear();
-                this.eventsAvailableWaitHandle.Set(); // signaled, does not block
             }
+        }
+
+        private void OnFinished()
+        {
+            this.subscribers.Clear();
+            this.eventsAvailableWaitHandle.Set(); // signaled, does not block // do not wait for more events, there won't be any
+            this.finishedWaitHandle.Set(); // signaled, does not block
         }
 
         private void Enqueue_NoLock( EnqueuedEvent evnt )
@@ -197,7 +202,7 @@ namespace Mechanical3.Events
                 evnt.EnqueueSource = new FileLineInfo(file, member, line);
                 var e = new EnqueuedEvent(evnt, createTask: false);
 
-                lock ( this.eventsLock )
+                lock( this.eventsLock )
                     this.Enqueue_NoLock(e);
             }
         }
@@ -225,7 +230,7 @@ namespace Mechanical3.Events
                 evnt.EnqueueSource = new FileLineInfo(file, member, line);
                 var e = new EnqueuedEvent(evnt, createTask: true);
 
-                lock ( this.eventsLock )
+                lock( this.eventsLock )
                     this.Enqueue_NoLock(e);
 
                 e.Task.GetAwaiter().GetResult(); // should work like "await task", but in a blocking call. Won't wrap exceptions in AggregateException.
@@ -257,7 +262,7 @@ namespace Mechanical3.Events
                 evnt.EnqueueSource = new FileLineInfo(file, member, line);
                 var e = new EnqueuedEvent(evnt, createTask: true);
 
-                lock ( this.eventsLock )
+                lock( this.eventsLock )
                     this.Enqueue_NoLock(e);
 
                 return e.Task;
@@ -302,6 +307,15 @@ namespace Mechanical3.Events
             this.Enqueue(new EventQueueClosingEvent(timeLimit), file, member, line);
         }
 
+        /// <summary>
+        /// Blocks the calling thread, until <see cref="EventQueueClosedEvent"/> has finished handling
+        /// and this instance has released it's resources.
+        /// </summary>
+        public void WaitForClosed()
+        {
+            this.finishedWaitHandle.Wait();
+        }
+
         #endregion
 
         #region Public Members
@@ -314,7 +328,7 @@ namespace Mechanical3.Events
         {
             get
             {
-                lock ( this.eventsLock )
+                lock( this.eventsLock )
                     return this.events.Count != 0;
             }
         }
@@ -347,7 +361,7 @@ namespace Mechanical3.Events
         {
             // get event
             EnqueuedEvent e;
-            lock ( this.eventsLock )
+            lock( this.eventsLock )
                 e = this.Dequeue_NoLock();
 
             if( e.NullReference() )
@@ -380,6 +394,10 @@ namespace Mechanical3.Events
                     //// TODO: invoke the default unhandled exception processing method
                 }
             }
+
+            // closed and finished handling?
+            if( this.IsClosed )
+                this.OnFinished();
         }
 
         /// <summary>
