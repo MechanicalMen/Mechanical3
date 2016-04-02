@@ -2,6 +2,11 @@
 
 namespace Mechanical3.DataStores
 {
+    //// NOTE: Passing a bunch of converters to a data store reader/writer constructor
+    ////       may be bothersome, this interface helps with that. It is also true,
+    ////       that a generic data store document should have no need to know what
+    ////       data types it stores, only the serialization code needs that.
+
     //// NOTE: For performance critical scenarios, you can either cache converters from the locator,
     ////       or you could try switching to a binary file format.
 

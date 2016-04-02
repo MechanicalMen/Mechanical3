@@ -4,6 +4,11 @@ using Mechanical3.Core;
 
 namespace Mechanical3.DataStores
 {
+    /* Data stores abstract away:
+     *    - the file format (XML, JSON, ... etc.)
+     *    - the data format (decimal separator, date time format string, ... etc.)
+     */
+
     /// <summary>
     /// Data store related helper members.
     /// </summary>

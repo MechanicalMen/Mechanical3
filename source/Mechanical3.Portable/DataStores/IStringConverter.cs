@@ -2,17 +2,6 @@
 
 namespace Mechanical3.DataStores
 {
-    /* NOTE: When saving data to a file, we implicitly format it it two main ways:
-              - "file" format (e.g. json, xml, ...)
-              - "data" format (e.g. the string representation of dates, the decimal separator of numbers, ... etc.)
-                (this could further be subdivided into "culture" and "content", but we won't do so now)
-
-             IStringConverter<T> allows us to abstract away data formatting for text-based formats.
-    */
-
-    //// NOTE: Passing a bunch of converters to a constructor may be bothersome,
-    ////       IStringConverterLocator can help with that.
-
     /// <summary>
     /// Converts instances of type <typeparamref name="T"/> to and from a <see cref="string"/>.
     /// </summary>
