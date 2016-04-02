@@ -1,39 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Xml;
 using Mechanical3.Core;
 
 namespace Mechanical3.DataStores.Xml
 {
+    /* The legacy Mechanical2 XML format, compared to the new version 3 format:
+     *  - mechanical2 encloses everything in a tag that is always named "root", and has no attributes
+     *    (this was done to support empty data stores, similar to IEnumerator, but was never actually used by serializers)
+     *  - mechanical2 has names for root objects
+     *  - non empty values and objects are differentiated based on the first child node
+     *  - empty values are represented by an empty element, and null values are not supported
+     *  - arrays are not supported
+     */
+
     /// <summary>
-    /// Parses an xml file using xml data store format version 3.
-    /// Expects the reader to be positioned at the root of the document,
-    /// with the format version having already been verified.
+    /// Parses an xml file using xml data store format version 2 (the format used in Mechanical2).
+    /// Expects the reader to be positioned at the root of the document.
     /// </summary>
-    internal class XmlFileFormatReader3 : DisposableObject, IDataStoreTextFileFormatReader
+    internal class XmlFileFormatReader2 : DisposableObject, IDataStoreTextFileFormatReader
     {
+        //// NOTE: this is not intended to be very rugged and well rounded,
+        ////       it just needs to reliably parse programmatically generated Mechanical2 XML data stores.
+
         #region Private Fields
 
-        private readonly Stack<DataStoreToken> parents;
         private XmlReader xmlReader;
-        private bool isAtRootNode;
+        private bool needToMoveToNextToken = true;
+        private int depth = 0;
 
         #endregion
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="XmlFileFormatReader3"/> class.
+        /// Initializes a new instance of the <see cref="XmlFileFormatReader2"/> class.
         /// </summary>
         /// <param name="reader">The <see cref="XmlReader"/> to use.</param>
-        internal XmlFileFormatReader3( XmlReader reader )
+        internal XmlFileFormatReader2( XmlReader reader )
         {
             if( reader.NullReference() )
                 throw new ArgumentNullException(nameof(reader)).StoreFileLine();
 
-            this.parents = new Stack<DataStoreToken>();
             this.xmlReader = reader;
-            this.isAtRootNode = true;
         }
 
         #endregion
@@ -52,50 +60,6 @@ namespace Mechanical3.DataStores.Xml
                 && this.xmlReader.NodeType != XmlNodeType.Text );
 
             return true;
-        }
-
-        private void ReadValueClosingNode( out string value )
-        {
-            //// assuming we are at the opening node of the value,
-            //// or one of the opening node's attributes
-
-            if( !this.MoveToNextStartOrEndOrTextElement() )
-                throw new FormatException("Unexpected end of stream!").StoreFileLine();
-
-            // consume content (and move to closing tnode if not found)
-            if( this.xmlReader.NodeType == XmlNodeType.Text )
-            {
-                value = this.xmlReader.Value;
-                if( !this.MoveToNextStartOrEndOrTextElement() )
-                    throw new FormatException("Unexpected end of stream!").StoreFileLine();
-            }
-            else
-            {
-                value = string.Empty;
-            }
-
-            // consume closing node
-            if( this.xmlReader.NodeType != XmlNodeType.EndElement )
-                throw new FormatException("Closing node not found!").Store(nameof(XmlReader.NodeType), this.xmlReader.NodeType);
-        }
-
-        private bool HasTypeAttribute( out string typeAttr )
-        {
-            if( this.xmlReader.MoveToFirstAttribute() )
-            {
-                do
-                {
-                    if( string.Equals(this.xmlReader.Name, "type", StringComparison.Ordinal) )
-                    {
-                        typeAttr = this.xmlReader.Value;
-                        return true; // any remaining attributes will be skipped later
-                    }
-                }
-                while( this.xmlReader.MoveToNextAttribute() );
-            }
-
-            typeAttr = null;
-            return false;
         }
 
         #endregion
@@ -122,7 +86,7 @@ namespace Mechanical3.DataStores.Xml
 
             //// shared cleanup logic
             //// (unmanaged resources)
-            this.parents?.Clear();
+
 
             base.OnDispose(disposing);
         }
@@ -185,13 +149,8 @@ namespace Mechanical3.DataStores.Xml
         {
             this.ThrowIfDisposed();
 
-            // read up until the next node of interest,
-            // unless we are just starting from the root node
-            if( this.isAtRootNode )
-            {
-                this.isAtRootNode = false;
-            }
-            else
+            // read up until the next node of interest
+            if( this.needToMoveToNextToken )
             {
                 if( !this.MoveToNextStartOrEndOrTextElement() )
                 {
@@ -209,65 +168,54 @@ namespace Mechanical3.DataStores.Xml
                 {
                     name = this.xmlReader.Name;
 
-                    string typeAttr;
                     if( this.xmlReader.IsEmptyElement )
                     {
-                        // <null_value />
                         token = DataStoreToken.Value;
-                        value = null;
-                        return true;
-                    }
-                    else if( !this.HasTypeAttribute(out typeAttr) )
-                    {
-                        // <value>3.14</value>
-                        token = DataStoreToken.Value;
-                        this.ReadValueClosingNode(out value);
+                        value = string.Empty;
+                        this.needToMoveToNextToken = true;
                         return true;
                     }
                     else
                     {
-                        // <node type="???">
-                        if( string.Equals(typeAttr, "value", StringComparison.Ordinal) )
+                        //// value or object?
+
+                        this.MoveToNextStartOrEndOrTextElement();
+                        if( this.xmlReader.NodeType == XmlNodeType.Text )
                         {
                             token = DataStoreToken.Value;
-                            this.ReadValueClosingNode(out value);
-                            return true;
-                        }
-                        else if( string.Equals(typeAttr, "object", StringComparison.Ordinal) )
-                        {
-                            token = DataStoreToken.ObjectStart;
-                            value = null;
-
-                            this.parents.Push(token);
-                            return true;
-                        }
-                        else if( string.Equals(typeAttr, "array", StringComparison.Ordinal) )
-                        {
-                            token = DataStoreToken.ArrayStart;
-                            value = null;
-
-                            this.parents.Push(token);
+                            value = this.xmlReader.Value;
+                            this.MoveToNextStartOrEndOrTextElement(); // read end element
+                            this.needToMoveToNextToken = true;
                             return true;
                         }
                         else
                         {
-                            throw new FormatException("Unknown type attribute value!").Store(nameof(typeAttr), typeAttr);
+                            token = DataStoreToken.ObjectStart;
+                            value = null;
+                            this.needToMoveToNextToken = false;
+                            ++this.depth;
+                            return true;
                         }
                     }
                 }
 
             case XmlNodeType.EndElement:
+                if( this.depth > 0 )
                 {
-                    if( this.parents.Count == 0 )
-                        throw new FormatException("Unexpected closing node found!").StoreFileLine();
-
-                    // closing array or object node
                     token = DataStoreToken.End;
                     name = this.xmlReader.Name;
                     value = null;
-
-                    this.parents.Pop();
+                    this.needToMoveToNextToken = true;
+                    --this.depth;
                     return true;
+                }
+                else
+                {
+                    token = default(DataStoreToken);
+                    name = null;
+                    value = null;
+                    this.needToMoveToNextToken = true;
+                    return false;
                 }
 
             case XmlNodeType.Text:

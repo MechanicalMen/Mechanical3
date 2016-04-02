@@ -56,7 +56,7 @@ namespace Mechanical3.DataStores.Xml
             switch( formatVersion )
             {
             case 2:
-                throw new NotSupportedException().StoreFileLine();
+                return new XmlFileFormatReader2(xmlReader);
 
             case 3:
                 return new XmlFileFormatReader3(xmlReader);
