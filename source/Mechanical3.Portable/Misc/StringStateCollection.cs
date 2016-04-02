@@ -63,9 +63,17 @@ namespace Mechanical3.Misc
                 key = entry.Key as string;
                 if( key.NotNullReference() )
                 {
-                    value = entry.Value as string;
-                    if( value.NotNullReference() )
-                        yield return new KeyValuePair<string, string>(key, value);
+                    // we only care about non-null string values, or null
+                    if( entry.Value.NullReference() )
+                    {
+                        yield return new KeyValuePair<string, string>(key, null);
+                    }
+                    else
+                    {
+                        value = entry.Value as string;
+                        if( value.NotNullReference() ) // do not yield, if not a string
+                            yield return new KeyValuePair<string, string>(key, value);
+                    }
                 }
             }
         }
@@ -148,7 +156,7 @@ namespace Mechanical3.Misc
         /// <param name="state">The object to add to this collection.</param>
         public void Add( StringState state )
         {
-            if( state.Value.NullReference() )
+            if( state.Name.NullReference() )
                 throw new ArgumentNullException(nameof(state)).StoreFileLine();
 
             // we do not allow overwriting of earlier data

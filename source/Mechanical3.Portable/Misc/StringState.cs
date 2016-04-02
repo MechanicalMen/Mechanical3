@@ -23,8 +23,7 @@ namespace Mechanical3.Misc
             if( name.NullOrLengthy() )
                 throw new ArgumentException("Invalid name!");
 
-            if( value.NullReference() )
-                throw new ArgumentNullException(nameof(value));
+            //// value may be null
 
             if( valueType.NullOrLengthy() )
                 throw new ArgumentException("Invalid type string!");
@@ -43,14 +42,10 @@ namespace Mechanical3.Misc
         /// <returns>An object representing the recorded value.</returns>
         public static StringState From<T>( string name, T value )
         {
-            //// NOTE: Optional postfix on value type allows us to differentiate
-            ////       between an object that is actually a null reference,
-            ////       and an object that simply prints "null".
-
             return new StringState(
                 name,
-                SafeString.DebugPrint(value),
-                value.NotNullReference() ? SafeString.DebugPrint(value.GetType()) : (SafeString.DebugPrint(typeof(T)) + " (null)"));
+                value.NotNullReference() ? SafeString.DebugPrint(value) : null,
+                value.NotNullReference() ? SafeString.DebugPrint(value.GetType()) : SafeString.DebugPrint(typeof(T)));
         }
 
         #endregion
@@ -75,6 +70,31 @@ namespace Mechanical3.Misc
         /// <value>The original type of the recorded value.</value>
         public string ValueType { get; }
 
+        /// <summary>
+        /// Gets the printable format of the value.
+        /// It will never return <c>null</c>, and will surround string values in double quotes.
+        /// </summary>
+        /// <value>The printable format of the value.</value>
+        public string DisplayValue
+        {
+            get
+            {
+                if( this.Value.NullReference() )
+                {
+                    return "null";
+                }
+                else
+                {
+                    if( string.Equals(this.ValueType, "string", StringComparison.Ordinal)
+                     || string.Equals(this.ValueType, "String", StringComparison.Ordinal)
+                     || string.Equals(this.ValueType, "System.String", StringComparison.Ordinal) )
+                        return '"' + this.Value + '"';
+                    else
+                        return this.Value;
+                }
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -85,7 +105,7 @@ namespace Mechanical3.Misc
         /// <returns>The string representation of this instance.</returns>
         public override string ToString()
         {
-            return $"{this.Name}={this.Value}";
+            return $"{this.Name}={this.DisplayValue}";
         }
 
         #endregion
