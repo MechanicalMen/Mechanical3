@@ -53,8 +53,11 @@ namespace Mechanical3.Tests.DataStores.Xml
             {
                 Assert.NotNull(expectedOutputs);
 
-                foreach( var output in expectedOutputs )
-                    AssertResultEquals(reader, output);
+                using( reader )
+                {
+                    foreach( var output in expectedOutputs )
+                        AssertResultEquals(reader, output);
+                }
             }
         }
 

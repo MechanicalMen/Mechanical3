@@ -9,6 +9,15 @@ namespace Mechanical3.DataStores
      *    - the data format (decimal separator, date time format string, ... etc.)
      */
 
+    /* A data store is a hierarchical data structure:
+     *    - There are 3 types of nodes: values, objects and arrays
+     *    - values have a string content, but no children (null and empty strings are valid)
+     *    - objects have named children, while arrays have indexed children
+     *    - the root node may not be a value, and has no name
+     *    - there must always be a root node
+     *    - both objects and arrays preserve the writing order of their children
+     */
+
     /// <summary>
     /// Data store related helper members.
     /// </summary>
