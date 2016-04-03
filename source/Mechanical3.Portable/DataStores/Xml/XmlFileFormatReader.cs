@@ -7,7 +7,7 @@ using Mechanical3.Core;
 namespace Mechanical3.DataStores.Xml
 {
     /// <summary>
-    /// Creates an <see cref="IDataStoreTextFileFormatReader"/> for Mechanical3 and Mechanical2 xml data store formats.
+    /// Creates an <see cref="IDataStoreTextFileFormatReader"/> for Mechanical3 and Mechanical2 XML data store formats.
     /// </summary>
     public static class XmlFileFormatReader
     {

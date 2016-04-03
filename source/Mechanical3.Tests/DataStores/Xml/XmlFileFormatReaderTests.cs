@@ -62,30 +62,28 @@ namespace Mechanical3.Tests.DataStores.Xml
 
         #region Complex tests
 
-        private const string ComplexXml_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string ComplexXml_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
-    <value_not_empty>a</value_not_empty>
-    <value_empty type=""value""></value_empty>
-    <value_null />
-
-    <object_not_empty type=""object"">
-        <a>b</a>
-    </object_not_empty>
-    <object_empty type=""object""></object_empty>
-
-    <as_array type=""array"">
-        <i>a</i>
-        <i type=""value""></i>
-        <i />
-        <i type=""object"">
-            <a>b</a>
-        </i>
-        <i type=""object""></i>
-    </as_array>
-    <array_empty type=""array""></array_empty>
+  <value_not_empty>a</value_not_empty>
+  <value_empty type=""value""></value_empty>
+  <value_null />
+  <object_not_empty type=""object"">
+    <a>b</a>
+  </object_not_empty>
+  <object_empty type=""object""></object_empty>
+  <as_array type=""array"">
+    <i>a</i>
+    <i type=""value""></i>
+    <i />
+    <i type=""object"">
+      <a>b</a>
+    </i>
+    <i type=""object""></i>
+  </as_array>
+  <array_empty type=""array""></array_empty>
 </DataStore>";
 
-        private static readonly ReaderOutput[] ComplexOutputs_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] ComplexOutputs_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ObjectStart, "DataStore"),
 
@@ -150,7 +148,7 @@ namespace Mechanical3.Tests.DataStores.Xml
         };
 
         [Test]
-        public static void ComplexXmlTests()
+        public static void ComplexXmlReaderTests()
         {
             ReaderOutput.AssertResultsEqual(
                 XmlFileFormatReader.FromXml(ComplexXml_Format3),
@@ -165,41 +163,43 @@ namespace Mechanical3.Tests.DataStores.Xml
 
         #region Small tests
 
-        private const string SmallXml_ArrayRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SmallXml_ArrayRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""array"">
-    <i>a</i>
-    <i>b</i>
+  <i>a</i>
+  <i>b</i>
 </DataStore>";
 
         // testing different root names here as well
-        private const string SmallXml_ValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SmallXml_ValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <value_not_empty formatVersion=""3"">a</value_not_empty>";
-        private const string SmallXml_EmptyValueRoot_Format3 = @"<value_empty formatVersion=""3"" type=""value""></value_empty>";
-        private const string SmallXml_NullValueRoot_Format3 = @"<value_null formatVersion=""3"" />";
+        internal const string SmallXml_EmptyValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<value_empty formatVersion=""3"" type=""value""></value_empty>";
+        internal const string SmallXml_NullValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+<value_null formatVersion=""3"" />";
 
-        private const string SmallXml_NestedObjects_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SmallXml_NestedObjects_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
-    <a type=""object""></a>
+  <a type=""object""></a>
+  <b type=""object"">
     <b type=""object"">
-        <b type=""object"">
-            <b type=""object""></b>
-        </b>
+      <b type=""object""></b>
     </b>
-    <c type=""object""></c>
+  </b>
+  <c type=""object""></c>
 </DataStore>";
 
-        private const string SmallXml_NestedArrays_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SmallXml_NestedArrays_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""array"">
-    <i type=""array""></i>
+  <i type=""array""></i>
+  <i type=""array"">
     <i type=""array"">
-        <i type=""array"">
-            <i type=""array""></i>
-        </i>
+      <i type=""array""></i>
     </i>
-    <i type=""array""></i>
+  </i>
+  <i type=""array""></i>
 </DataStore>";
 
-        private static readonly ReaderOutput[] SmallOutput_ArrayRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_ArrayRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.Value, "i", "a"),
@@ -208,25 +208,25 @@ namespace Mechanical3.Tests.DataStores.Xml
             ReaderOutput.False(),
         };
 
-        private static readonly ReaderOutput[] SmallOutput_ValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_ValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
             ReaderOutput.False(),
         };
 
-        private static readonly ReaderOutput[] SmallOutput_EmptyValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_EmptyValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
             ReaderOutput.False(),
         };
 
-        private static readonly ReaderOutput[] SmallOutput_NullValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_NullValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_null", null),
             ReaderOutput.False(),
         };
 
-        private static readonly ReaderOutput[] SmallOutput_NestedObjects = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_NestedObjects = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ObjectStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.ObjectStart, "a"),
@@ -243,7 +243,7 @@ namespace Mechanical3.Tests.DataStores.Xml
             ReaderOutput.False(),
         };
 
-        private static readonly ReaderOutput[] SmallOutput_NestedArrays_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SmallOutput_NestedArrays_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
@@ -274,7 +274,7 @@ namespace Mechanical3.Tests.DataStores.Xml
 </root>";
 
         [Test]
-        public static void SmallXmlTests()
+        public static void SmallXmlReaderTests()
         {
             ReaderOutput.AssertResultsEqual(
                 XmlFileFormatReader.FromXml(SmallXml_ArrayRoot_Format3),
