@@ -68,8 +68,6 @@ namespace Mechanical3.Tests.DataStores
             Assert.False(DataStore.TryParse<float>("1", out single, testLocator));
             Assert.True(DataStore.TryParse<float>("1", out single));
             Assert.AreEqual(1f, single);
-
-            Assert.False(DataStore.TryParse<int>(null, out value, testLocator)); // fails, even though the converter could handle it
         }
 
         [Test]
@@ -82,12 +80,10 @@ namespace Mechanical3.Tests.DataStores
             // converter tests
             Assert.AreEqual(5, DataStore.Parse("asd", converter));
             Assert.Throws<ArgumentNullException>(() => DataStore.Parse("asd", (IStringConverter<int>)null));
-            Assert.Throws<ArgumentNullException>(() => DataStore.Parse(null, converter)); // throws, even though the converter could handle it
             Assert.Throws<FormatException>(() => DataStore.Parse("asd", RoundTripStringConverter.Locator.GetConverter<int>()));
 
             // locator tests
             Assert.AreEqual(5, DataStore.Parse<int>("a", testLocator));
-            Assert.Throws<ArgumentNullException>(() => DataStore.Parse<int>(null, testLocator)); // throws, even though the converter could handle it
             Assert.Throws<FormatException>(() => DataStore.Parse<int>("a"));
             Assert.Throws<KeyNotFoundException>(() => DataStore.Parse<float>("1", testLocator));
             Assert.AreEqual(1f, DataStore.Parse<float>("1"));

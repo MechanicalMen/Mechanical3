@@ -272,24 +272,13 @@ namespace Mechanical3.DataStores
         {
             public string ToString( string obj )
             {
-                if( obj.NullReference() )
-                    throw new ArgumentNullException().Store(nameof(obj), obj);
-
                 return obj;
             }
 
             public bool TryParse( string str, out string obj )
             {
-                if( str.NullReference() )
-                {
-                    obj = null;
-                    return false;
-                }
-                else
-                {
-                    obj = str;
-                    return true;
-                }
+                obj = str;
+                return true;
             }
         }
 

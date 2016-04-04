@@ -21,7 +21,7 @@ namespace Mechanical3.Tests.DataStores
 
                 writer.Write("value_not_empty", "a");
                 writer.Write("value_empty", string.Empty);
-                writer.Write("value_null", null);
+                writer.Write("value_null", (string)null);
                 writer.WriteObjectStart("object_not_empty");
                 writer.Write("a", "b");
                 writer.WriteEnd();
@@ -31,7 +31,7 @@ namespace Mechanical3.Tests.DataStores
                 writer.WriteArrayStart("as_array");
                 writer.Write("a");
                 writer.Write(string.Empty);
-                writer.Write(null);
+                writer.Write((string)null);
                 writer.WriteObjectStart();
                 writer.Write("a", "b");
                 writer.WriteEnd();

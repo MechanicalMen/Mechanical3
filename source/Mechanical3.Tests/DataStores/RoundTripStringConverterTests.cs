@@ -14,7 +14,7 @@ namespace Mechanical3.Tests.DataStores
             Assert.NotNull(converter);
 
             string asString = converter.ToString(obj);
-            Test.OrdinalEquals(str.Trim(), asString);
+            Test.OrdinalEquals(str?.Trim(), asString);
 
             var asObj = DataStore.Parse(str, converter);
             Assert.AreEqual((object)obj, (object)asObj);
@@ -188,7 +188,7 @@ namespace Mechanical3.Tests.DataStores
             ToStringParse<string>(string.Empty, string.Empty, stringConverter);
             ToStringParse<string>("a", "a", stringConverter);
             Test.OrdinalEquals(" b", stringConverter.ToString(" b")); // ToStringParse fails because of implicit .Trim()
-            TryParseFails(null, stringConverter);
+            ToStringParse<string>(null, null, stringConverter);
 
             // DateTime
             var dateTimeConverter = locator.GetConverter<DateTime>();

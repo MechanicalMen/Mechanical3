@@ -104,12 +104,6 @@ namespace Mechanical3.DataStores
         /// <exception cref="ArgumentNullException"><paramref name="str"/> is <c>null</c>.</exception>
         public static bool TryParse<T>( string str, out T obj, IStringConverterLocator locator = null )
         {
-            if( str.NullReference() )
-            {
-                obj = default(T);
-                return false;
-            }
-
             if( locator.NullReference() )
                 locator = RoundTripStringConverter.Locator;
 
@@ -135,9 +129,6 @@ namespace Mechanical3.DataStores
         /// <returns>A restored instance of type <typeparamref name="T"/>.</returns>
         public static T Parse<T>( string str, IStringConverter<T> converter )
         {
-            if( str.NullReference() )
-                throw new ArgumentNullException(nameof(str)).StoreFileLine();
-
             if( converter.NullReference() )
                 throw new ArgumentNullException(nameof(converter)).StoreFileLine();
 
@@ -157,9 +148,6 @@ namespace Mechanical3.DataStores
         /// <returns>A restored instance of type <typeparamref name="T"/>.</returns>
         public static T Parse<T>( string str, IStringConverterLocator locator = null )
         {
-            if( str.NullReference() )
-                throw new ArgumentNullException(nameof(str)).StoreFileLine();
-
             if( locator.NullReference() )
                 locator = RoundTripStringConverter.Locator;
 

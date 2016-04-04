@@ -251,21 +251,29 @@ namespace Mechanical3.DataStores
         /// <summary>
         /// Writes a value.
         /// </summary>
-        /// <param name="name">The data store name to use.</param>
+        /// <typeparam name="T">The type to serialize an instance of.</typeparam>
         /// <param name="value">The value content to write.</param>
-        public void Write( string name, string value )
+        /// <param name="converter">The converter to use to serialize the <paramref name="value"/>; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
+        public void Write<T>( T value, IStringConverter<T> converter = null )
         {
-            this.WriteName(name);
-            this.WriteValue<string>(value);
+            if( converter.NullReference() )
+                converter = this.Converters.GetConverter<T>();
+
+            var stringValue = converter.ToString(value);
+            this.WriteValue<T>(stringValue);
         }
 
         /// <summary>
         /// Writes a value.
         /// </summary>
+        /// <typeparam name="T">The type to serialize an instance of.</typeparam>
+        /// <param name="name">The data store name to use.</param>
         /// <param name="value">The value content to write.</param>
-        public void Write( string value )
+        /// <param name="converter">The converter to use to serialize the <paramref name="value"/>; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
+        public void Write<T>( string name, T value, IStringConverter<T> converter = null )
         {
-            this.WriteValue<string>(value);
+            this.WriteName(name);
+            this.Write<T>(value, converter);
         }
 
         #endregion
