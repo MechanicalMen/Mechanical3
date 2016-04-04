@@ -13,10 +13,11 @@ namespace Mechanical3.Core
     {
         //// NOTE: We do not use a static class, so that this class may be inherited, along with it's static members.
 
-        //// NOTE: This is pretty much the definition of an anti-pattern (service locator), but just like with the Log class,
-        ////       I just find it too useful (for these very common cases: app shutdown, logging, invoking exception handlers)
+        //// NOTE: This is pretty much the definition of an anti-pattern (service locator), but just like with IStringConverterLocator and Log,
+        ////       I just find it too useful to replace with something else.
 
-        //// NOTE: I am also way too lazy to use dependency injection each and every time I want to log, or have an exception be handled.
+        //// NOTE: I am also way too lazy to use dependency injection each and every time I want to log, or have an exception be handled
+        ////       (nevermind listing each data type being serialized in a data store document)
 
         #region Initialization
 

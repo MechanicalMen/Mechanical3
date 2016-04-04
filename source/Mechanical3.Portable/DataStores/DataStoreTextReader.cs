@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Xml;
@@ -26,30 +24,12 @@ namespace Mechanical3.DataStores
 
         #endregion
 
-        #region Parent
-
-        private struct Parent
-        {
-            internal readonly bool IsObject;
-            internal readonly string Name;
-            internal readonly int Index;
-
-            internal Parent( bool isObject, string name, int index )
-            {
-                this.IsObject = isObject;
-                this.Name = name;
-                this.Index = index;
-            }
-        }
-
-        #endregion
-
         #region Private Fields
 
         private const int InvalidIndex = -1;
 
-        private readonly List<Parent> parents;
         private readonly IStringConverterLocator converters;
+        private readonly ParentStack parents;
         private IDataStoreTextFileFormatReader file;
         private ReaderState state;
         private DataStoreToken token = (DataStoreToken)byte.MaxValue; // the first reading should not find a recognizable token
@@ -74,8 +54,8 @@ namespace Mechanical3.DataStores
             if( dataFormat.NullReference() )
                 dataFormat = RoundTripStringConverter.Locator;
 
-            this.parents = new List<Parent>();
             this.converters = dataFormat;
+            this.parents = new ParentStack();
             this.file = fileFormat;
             this.state = ReaderState.BeforeFirstRead;
         }
@@ -124,11 +104,6 @@ namespace Mechanical3.DataStores
             return exception;
         }
 
-        private Parent DirectParent
-        {
-            get { return this.parents[this.parents.Count - 1]; }
-        }
-
         #endregion
 
         #region IDisposableObject
@@ -153,7 +128,6 @@ namespace Mechanical3.DataStores
 
             //// shared cleanup logic
             //// (unmanaged resources)
-            this.parents?.Clear();
 
             base.OnDispose(disposing);
         }
@@ -237,11 +211,11 @@ namespace Mechanical3.DataStores
                 // leaving object or array start: add as new parent
                 if( this.token == DataStoreToken.ObjectStart )
                 {
-                    this.parents.Add(new Parent(true, this.name, this.index));
+                    this.parents.PushObject(this.name, this.index);
                 }
                 else if( this.token == DataStoreToken.ArrayStart )
                 {
-                    this.parents.Add(new Parent(false, this.name, this.index));
+                    this.parents.PushArray(this.name, this.index);
                     this.index = -1; // reset index inside array (to -1, since the first thing we'll do is increase the index for the current node)
                 }
 
@@ -252,7 +226,7 @@ namespace Mechanical3.DataStores
                     if( this.state == ReaderState.BeforeFirstRead )
                         throw new FormatException("Empty data store documents are not valid: if there is a document to read, then it can not be empty!").StoreFileLine();
 
-                    if( this.parents.Count != 0 )
+                    if( !this.parents.IsRoot )
                         throw new EndOfStreamException("Unexpected end of file: some arrays or objects are missing their ending tokens!").StoreFileLine();
 
                     this.state = ReaderState.AllTokensRead;
@@ -271,26 +245,26 @@ namespace Mechanical3.DataStores
                 else
                 {
                     // this is not the first token
-                    if( this.parents.Count == 0 )
-                        throw new FormatException("There can only be exactly one root node!").StoreFileLine();
+                    if( this.parents.IsRoot )
+                        throw new FormatException("There may only be exactly one root node!").StoreFileLine();
                 }
 #if DEBUG
                 // check name returned (undetermined for object and array ends, root, or inside arrays)
-                if( this.parents.Count != 0
+                if( !this.parents.IsRoot
                  && this.token != DataStoreToken.End
-                 && this.DirectParent.IsObject
+                 && this.parents.DirectParent.IsObject
                  && !DataStore.IsValidName(this.name) )
-                        throw new FormatException("Invalid name provided by file format!").Store(nameof(this.name), this.name).Store(nameof(this.token), this.token);
+                    throw new FormatException("Invalid name provided by file format!").Store(nameof(this.name), this.name).Store(nameof(this.token), this.token);
 #endif
 
                 // discard unused name information (see End token below for the rest)
-                if( this.parents.Count == 0
-                 || !this.DirectParent.IsObject )
+                if( this.parents.IsRoot
+                 || !this.parents.DirectParent.IsObject )
                     this.name = null; // root or inside array
 
                 // set index (see End token below for the rest)
-                if( this.parents.Count != 0
-                 && !this.DirectParent.IsObject )
+                if( !this.parents.IsRoot
+                 && !this.parents.DirectParent.IsObject )
                     ++this.index; // has array parent
                 else
                     this.index = InvalidIndex; // root or object parent
@@ -305,19 +279,17 @@ namespace Mechanical3.DataStores
 
                 case DataStoreToken.End:
                     {
-                        if( this.parents.Count == 0 )
+                        if( this.parents.IsRoot )
                             throw new FormatException("'End' is not a valid initial token!").StoreFileLine();
 
-                        int lastIndex = this.parents.Count - 1;
-                        var parent = this.parents[lastIndex];
-                        this.parents.RemoveAt(lastIndex);
+                        var parent = this.parents.PopParent();
                         this.name = parent.Name; // even if the file format provided the name, we discard it
                         this.index = parent.Index;
                     }
                     break;
 
                 case DataStoreToken.Value:
-                    if( this.parents.Count == 0 )
+                    if( this.parents.IsRoot )
                         throw new FormatException("A value is not a valid root node!").StoreFileLine();
                     break;
 
@@ -358,8 +330,8 @@ namespace Mechanical3.DataStores
             {
                 this.ThrowIfNotReading();
 
-                if( this.parents.Count != 0
-                 && this.DirectParent.IsObject )
+                if( !this.parents.IsRoot
+                 && this.parents.DirectParent.IsObject )
                     return this.name;
                 else
                     throw new InvalidOperationException("This is the root node, or the parent of this node is not an object!").StoreFileLine();
@@ -376,8 +348,8 @@ namespace Mechanical3.DataStores
             {
                 this.ThrowIfNotReading();
 
-                if( this.parents.Count != 0
-                 && !this.DirectParent.IsObject )
+                if( !this.parents.IsRoot
+                 && !this.parents.DirectParent.IsObject )
                     return this.index;
                 else
                     throw new InvalidOperationException("This is the root node, or the parent of this node is not an array!").StoreFileLine();
@@ -412,28 +384,7 @@ namespace Mechanical3.DataStores
             {
                 this.ThrowIfNotReading();
 
-                if( this.parents.Count == 0 )
-                    throw new InvalidOperationException("Root nodes have no path!").StoreFileLine();
-
-                // build path from parents
-                string name;
-                FilePath node;
-                FilePath result = null;
-
-                for( int i = 1; i < this.parents.Count; ++i ) // starting from 1, since the root has neither name nor index
-                {
-                    var curr = this.parents[i];
-                    var par = this.parents[i - 1];
-                    name = par.IsObject ? curr.Name : curr.Index.ToString(CultureInfo.InvariantCulture);
-                    node = FilePath.FromDirectoryName(name);
-                    result = result.NullReference() ? node : result + node;
-                }
-
-                // add current node to path
-                name = this.DirectParent.IsObject ? this.name : this.index.ToString(CultureInfo.InvariantCulture);
-                node = this.token == DataStoreToken.Value ? FilePath.FromFileName(name) : FilePath.FromDirectoryName(name);
-                result = result.NullReference() ? node : result + node;
-                return result;
+                return this.parents.GetCurrentPath(this.token == DataStoreToken.Value, this.name, this.index);
             }
         }
 

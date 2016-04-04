@@ -36,8 +36,8 @@ namespace Mechanical3.DataStores.Xml
 
         #region Private Fields
 
+        private readonly ParentStack parents;
         private XmlWriter xmlWriter;
-        private bool isRootNode = true;
 
         #endregion
 
@@ -52,6 +52,7 @@ namespace Mechanical3.DataStores.Xml
             if( writer.NullReference() )
                 throw new ArgumentNullException(nameof(writer)).StoreFileLine();
 
+            this.parents = new ParentStack();
             this.xmlWriter = writer;
         }
 
@@ -161,11 +162,8 @@ namespace Mechanical3.DataStores.Xml
 
         private void WriteFormatVersion()
         {
-            if( this.isRootNode )
-            {
-                this.isRootNode = false;
+            if( this.parents.IsRoot )
                 this.xmlWriter.WriteAttributeString("formatVersion", "3");
-            }
         }
 
         #endregion
@@ -183,8 +181,23 @@ namespace Mechanical3.DataStores.Xml
         {
             this.ThrowIfDisposed();
 
-            if( name.NullOrEmpty() )
+            if( !this.parents.IsRoot
+             && !this.parents.DirectParent.IsObject )
+            {
+                // generate name automatically for array children
+                name = "i";
+            }
+            else if( !this.parents.IsRoot
+                  && this.parents.DirectParent.IsObject
+                  && token == DataStoreToken.End )
+            {
+                // use stored name for End tokens
+                name = this.parents.DirectParent.Name;
+            }
+            else if( name.NullOrEmpty() )
+            {
                 throw new ArgumentException().Store(nameof(token), token).Store(nameof(name), name);
+            }
 
             switch( token )
             {
@@ -211,18 +224,21 @@ namespace Mechanical3.DataStores.Xml
             case DataStoreToken.ObjectStart:
                 this.xmlWriter.WriteStartElement(name);
                 this.WriteFormatVersion();
+                this.parents.PushObject(name);
                 this.xmlWriter.WriteAttributeString("type", "object");
                 break;
 
             case DataStoreToken.ArrayStart:
                 this.xmlWriter.WriteStartElement(name);
                 this.WriteFormatVersion();
+                this.parents.PushArray(name);
                 this.xmlWriter.WriteAttributeString("type", "array");
                 break;
 
             case DataStoreToken.End:
-                if( this.isRootNode )
+                if( this.parents.IsRoot )
                     throw new ArgumentException("Invalid root token!").Store(nameof(token), token);
+                this.parents.PopParent();
                 this.xmlWriter.WriteFullEndElement();
                 break;
 

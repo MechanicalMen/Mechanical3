@@ -164,23 +164,23 @@ namespace Mechanical3.Tests.DataStores.Xml
 
         #endregion
 
-        #region Small tests
+        #region Simple tests
 
-        internal const string SmallXml_ArrayRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_ArrayRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""array"">
   <i>a</i>
   <i>b</i>
 </DataStore>";
 
         // testing different root names here as well
-        internal const string SmallXml_ValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_ValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <value_not_empty formatVersion=""3"">a</value_not_empty>";
-        internal const string SmallXml_EmptyValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_EmptyValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <value_empty formatVersion=""3"" type=""value""></value_empty>";
-        internal const string SmallXml_NullValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_NullValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <value_null formatVersion=""3"" />";
 
-        internal const string SmallXml_NestedObjects_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_NestedObjects_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
   <a type=""object""></a>
   <b type=""object"">
@@ -191,7 +191,7 @@ namespace Mechanical3.Tests.DataStores.Xml
   <c type=""object""></c>
 </DataStore>";
 
-        internal const string SmallXml_NestedArrays_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        internal const string SimpleXml_NestedArrays_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""array"">
   <i type=""array""></i>
   <i type=""array"">
@@ -202,7 +202,7 @@ namespace Mechanical3.Tests.DataStores.Xml
   <i type=""array""></i>
 </DataStore>";
 
-        internal static readonly ReaderOutput[] SmallOutput_ArrayRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_ArrayRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.Value, "i", "a"),
@@ -211,25 +211,25 @@ namespace Mechanical3.Tests.DataStores.Xml
             ReaderOutput.False(),
         };
 
-        internal static readonly ReaderOutput[] SmallOutput_ValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_ValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
             ReaderOutput.False(),
         };
 
-        internal static readonly ReaderOutput[] SmallOutput_EmptyValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_EmptyValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
             ReaderOutput.False(),
         };
 
-        internal static readonly ReaderOutput[] SmallOutput_NullValueRoot_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_NullValueRoot_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.Value, "value_null", null),
             ReaderOutput.False(),
         };
 
-        internal static readonly ReaderOutput[] SmallOutput_NestedObjects = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_NestedObjects = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ObjectStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.ObjectStart, "a"),
@@ -246,7 +246,7 @@ namespace Mechanical3.Tests.DataStores.Xml
             ReaderOutput.False(),
         };
 
-        internal static readonly ReaderOutput[] SmallOutput_NestedArrays_Format3 = new ReaderOutput[]
+        internal static readonly ReaderOutput[] SimpleOutput_NestedArrays_Format3 = new ReaderOutput[]
         {
             ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
             ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
@@ -263,7 +263,7 @@ namespace Mechanical3.Tests.DataStores.Xml
             ReaderOutput.False(),
         };
 
-        private const string SmallXml_NestedObjects_Format2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private const string SimpleXml_NestedObjects_Format2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <root>
     <DataStore>
         <a></a>
@@ -277,36 +277,36 @@ namespace Mechanical3.Tests.DataStores.Xml
 </root>";
 
         [Test]
-        public static void SmallXmlReaderTests()
+        public static void SimpleXmlReaderTests()
         {
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_ArrayRoot_Format3),
-                SmallOutput_ArrayRoot_Format3);
+                XmlFileFormatReader.FromXml(SimpleXml_ArrayRoot_Format3),
+                SimpleOutput_ArrayRoot_Format3);
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_ValueRoot_Format3),
-                SmallOutput_ValueRoot_Format3);
+                XmlFileFormatReader.FromXml(SimpleXml_ValueRoot_Format3),
+                SimpleOutput_ValueRoot_Format3);
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_EmptyValueRoot_Format3),
-                SmallOutput_EmptyValueRoot_Format3);
+                XmlFileFormatReader.FromXml(SimpleXml_EmptyValueRoot_Format3),
+                SimpleOutput_EmptyValueRoot_Format3);
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_NullValueRoot_Format3),
-                SmallOutput_NullValueRoot_Format3);
+                XmlFileFormatReader.FromXml(SimpleXml_NullValueRoot_Format3),
+                SimpleOutput_NullValueRoot_Format3);
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_NestedObjects_Format3),
-                SmallOutput_NestedObjects);
+                XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format3),
+                SimpleOutput_NestedObjects);
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_NestedArrays_Format3),
-                SmallOutput_NestedArrays_Format3);
+                XmlFileFormatReader.FromXml(SimpleXml_NestedArrays_Format3),
+                SimpleOutput_NestedArrays_Format3);
 
 
             ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SmallXml_NestedObjects_Format2),
-                SmallOutput_NestedObjects);
+                XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format2),
+                SimpleOutput_NestedObjects);
         }
 
         #endregion
