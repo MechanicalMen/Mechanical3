@@ -20,7 +20,7 @@ namespace Mechanical3.Misc
         /// <param name="assembly">The assembly to load the embedded version file from.</param>
         /// <param name="manifestResourceName">The case-sensitive manifest resource name of the embedded version file.</param>
         public MechanicalVersion( Assembly assembly, string manifestResourceName )
-            : this(ReadAll(assembly.GetManifestResourceStream(manifestResourceName)))
+            : this(ReadAll(assembly, manifestResourceName))
         {
         }
 
@@ -37,8 +37,12 @@ namespace Mechanical3.Misc
             this.LastBuildDate = DateTime.ParseExact(Regex.Match(json, @"\""lastBuildDate\""\s*:\s*\""([^""]*)\""").Groups[1].ToString(), "o", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
         }
 
-        private static string ReadAll( Stream stream )
+        private static string ReadAll( Assembly assembly, string manifestResourceName )
         {
+            var stream = assembly.GetManifestResourceStream(manifestResourceName);
+            if( stream == null )
+                throw new ArgumentException($"Could not find \"{manifestResourceName}\" in \"{assembly.FullName}\"!");
+
             using( var reader = new StreamReader(stream) )
                 return reader.ReadToEnd();
         }
