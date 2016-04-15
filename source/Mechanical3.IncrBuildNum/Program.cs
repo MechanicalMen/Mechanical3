@@ -48,12 +48,27 @@ namespace Mechanical3.IncrBuildNum
             }
             catch( Exception ex )
             {
+                IgnoreExceptions(() => ConsoleWindow.Show());
                 Console.WriteLine();
                 Console.WriteLine("Unhandled exception caught:");
                 Console.WriteLine(ex.ToString());
                 Console.WriteLine();
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey(intercept: true);
+            }
+        }
+
+        private static void IgnoreExceptions( Action action )
+        {
+            if( action == null )
+                return;
+
+            try
+            {
+                action();
+            }
+            catch
+            {
             }
         }
     }
