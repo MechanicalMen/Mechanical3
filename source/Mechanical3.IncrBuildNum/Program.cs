@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -19,8 +20,9 @@ namespace Mechanical3.IncrBuildNum
         }
         */
 
-        static void Main( string[] args )
+        private static int Main( string[] args )
         {
+            string originalJson = null;
             try
             {
                 // get file path
@@ -32,7 +34,8 @@ namespace Mechanical3.IncrBuildNum
                     throw new FileNotFoundException("Version file not found!");
 
                 // parse file
-                var obj = JObject.Parse(File.ReadAllText(filePath));
+                originalJson = File.ReadAllText(filePath);
+                var obj = JObject.Parse(originalJson);
 
                 // get previous values
                 var totalBuildCount = (int)obj["totalBuildCount"];
@@ -45,20 +48,40 @@ namespace Mechanical3.IncrBuildNum
 
                 // generate file contents
                 File.WriteAllText(filePath, obj.ToString(Formatting.Indented), Encoding.ASCII);
+                return 0;
             }
             catch( Exception ex )
             {
-                IgnoreExceptions(() => ConsoleWindow.Show());
+                // display error
+                IgnoreException(() => ConsoleWindow.Show());
                 Console.WriteLine();
                 Console.WriteLine("Unhandled exception caught:");
                 Console.WriteLine(ex.ToString());
                 Console.WriteLine();
                 Console.WriteLine("Press any key to exit...");
-                Console.ReadKey(intercept: true);
+
+                // log error
+                var sb = new StringBuilder();
+                sb.AppendLine("Arguments:");
+                foreach( var arg in args )
+                    sb.AppendLine(arg);
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendLine("Original version file contents:");
+                sb.AppendLine(originalJson);
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendLine("Unhandled exception:");
+                sb.Append(ex.ToString());
+                IgnoreException(() => Log.AppendLine(sb.ToString()));
+
+                // try to wait for user
+                IgnoreException(() => Console.ReadKey(intercept: true)); // throws in post build events, see: http://stackoverflow.com/a/22554678
+                return 1;
             }
         }
 
-        private static void IgnoreExceptions( Action action )
+        private static void IgnoreException( Action action )
         {
             if( action == null )
                 return;
@@ -67,8 +90,14 @@ namespace Mechanical3.IncrBuildNum
             {
                 action();
             }
-            catch
+            catch( Exception ex )
             {
+                if( Debugger.IsAttached )
+                {
+                    string strex = ex.ToString();
+                    strex.ToString(); // no longer an unused variable
+                    Debugger.Break();
+                }
             }
         }
     }
