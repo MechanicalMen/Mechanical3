@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using Mechanical3.Core;
 
@@ -41,6 +42,7 @@ namespace Mechanical3.IO.FileSystems
         /// </summary>
         /// <param name="abstractPath">The path to the abstract file or directory to represent.</param>
         /// <returns>The new <see cref="FilePath"/> instance.</returns>
+        [DebuggerStepThrough]
         public static FilePath From( string abstractPath )
         {
             if( !IsValidPath(abstractPath) )
@@ -54,6 +56,7 @@ namespace Mechanical3.IO.FileSystems
         /// </summary>
         /// <param name="fileName">The name of the file.</param>
         /// <returns>The new <see cref="FilePath"/> instance.</returns>
+        [DebuggerStepThrough]
         public static FilePath FromFileName( string fileName )
         {
             if( !IsValidName(fileName) )
@@ -67,6 +70,7 @@ namespace Mechanical3.IO.FileSystems
         /// </summary>
         /// <param name="directoryName">The name of the directory.</param>
         /// <returns>The new <see cref="FilePath"/> instance.</returns>
+        [DebuggerStepThrough]
         public static FilePath FromDirectoryName( string directoryName )
         {
             if( !IsValidName(directoryName) )
@@ -133,6 +137,23 @@ namespace Mechanical3.IO.FileSystems
                 int lastCharIndex = this.IsDirectory ? this.path.Length - 2 : this.path.Length - 1;
                 int separatorIndex = this.path.LastIndexOf(PathSeparator, lastCharIndex);
                 return separatorIndex != -1;
+            }
+        }
+
+        /// <summary>
+        /// Gets the root of this path.
+        /// May return a file (if this is a file without a parent directory).
+        /// </summary>
+        /// <value>The root of this path.</value>
+        public FilePath Root
+        {
+            get
+            {
+                int separatorIndex = this.path.IndexOf(PathSeparator);
+                if( separatorIndex != -1 )
+                    return new FilePath(this.path.Substring(startIndex: 0, length: separatorIndex + 1));
+                else
+                    return this; // may or may not be a file
             }
         }
 
@@ -250,6 +271,51 @@ namespace Mechanical3.IO.FileSystems
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets the path of the child, this ancestor has, in the specified path. (e.g. the path of the child of "a/" from "a/b/c" is "a/b/")
+        /// Returns <c>null</c>, if this is not an ancestor of the specified path.
+        /// </summary>
+        /// <param name="descendantPath">The path of a descendant of this instance.</param>
+        /// <returns>The child found, or <c>null</c>.</returns>
+        public FilePath GetChildFrom( FilePath descendantPath )
+        {
+            if( descendantPath.NullReference() )
+                throw new ArgumentNullException(nameof(descendantPath)).StoreFileLine();
+
+            if( !this.IsDirectory )
+                throw new InvalidOperationException("This is not a directory!").Store("currentPath", this);
+
+            if( !this.IsAncestorOf(descendantPath) )
+                return null;
+
+            int startIndex = this.path.Length;
+            int separatorAt = descendantPath.path.IndexOf(PathSeparator, startIndex);
+            if( separatorAt == -1 )
+                return descendantPath;
+            else
+                return FilePath.From(descendantPath.path.Substring(startIndex: 0, length: separatorAt + 1));
+        }
+
+        /// <summary>
+        /// Returns a path without the specified ancestor (e.g. "a/b/c" without ancestor "a/" is "b/c").
+        /// Returns <c>null</c>, if this is not a descendant of the specified path.
+        /// </summary>
+        /// <param name="ancestorPath">The ancestor to remove from this instance</param>
+        /// <returns>The path without the ancestor.</returns>
+        public FilePath RemoveAncestor( FilePath ancestorPath )
+        {
+            if( ancestorPath.NullReference() )
+                throw new ArgumentNullException(nameof(ancestorPath)).StoreFileLine();
+
+            if( !ancestorPath.IsDirectory )
+                throw new InvalidOperationException("The ancestor is not a directory!").Store(nameof(ancestorPath), ancestorPath);
+
+            if( !ancestorPath.IsAncestorOf(this) )
+                return null;
+
+            return FilePath.From(this.path.Substring(startIndex: ancestorPath.path.Length));
         }
 
         #endregion

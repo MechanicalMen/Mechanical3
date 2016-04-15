@@ -136,6 +136,17 @@ namespace Mechanical3.Tests.IO.FileSystems
         }
 
         [Test]
+        public static void RootTests()
+        {
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/b/c").Root.ToString()); // root is indirect parent
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/b/c/").Root.ToString());
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/b/").Root.ToString()); // root is direct parent
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/b").Root.ToString());
+            Test.OrdinalEquals(FilePath.From("a/").ToString(), FilePath.From("a/").Root.ToString()); // root is the same as the path
+            Test.OrdinalEquals(FilePath.From("a").ToString(), FilePath.From("a").Root.ToString());
+        }
+
+        [Test]
         public static void CombineTests()
         {
             Test.OrdinalEquals("a/b", (FilePath.From("a/") + FilePath.From("b")).ToString());
@@ -201,6 +212,68 @@ namespace Mechanical3.Tests.IO.FileSystems
             Assert.False(FilePath.From("b").IsAncestorOf(FilePath.From("a/b/c")));
             Assert.False(FilePath.From("b/").IsParentOf(FilePath.From("a/b/c")));
             Assert.False(FilePath.From("b/").IsAncestorOf(FilePath.From("a/b/c")));
+        }
+
+        [Test]
+        public static void GetChildFromTests()
+        {
+            Assert.Throws<InvalidOperationException>(() => FilePath.FromFileName("a").GetChildFrom(FilePath.From("a/b")));
+            Assert.Throws<ArgumentNullException>(() => FilePath.FromDirectoryName("a").GetChildFrom(null));
+
+            // not an ancestor
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("b"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("b/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("b/c"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("b/c/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/b/").GetChildFrom(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/b/").GetChildFrom(FilePath.From("b/"))?.ToString());
+
+            // "same" path (still not an ancestor)
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("a"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").GetChildFrom(FilePath.From("a/"))?.ToString());
+
+            // direct parent
+            Test.OrdinalEquals("a/b", FilePath.From("a/").GetChildFrom(FilePath.From("a/b"))?.ToString());
+            Test.OrdinalEquals("a/b/", FilePath.From("a/").GetChildFrom(FilePath.From("a/b/"))?.ToString());
+            Test.OrdinalEquals("a/b/c", FilePath.From("a/b/").GetChildFrom(FilePath.From("a/b/c"))?.ToString());
+            Test.OrdinalEquals("a/b/c/", FilePath.From("a/b/").GetChildFrom(FilePath.From("a/b/c/"))?.ToString());
+
+            // indirect parent
+            Test.OrdinalEquals("a/b/", FilePath.From("a/").GetChildFrom(FilePath.From("a/b/c"))?.ToString());
+            Test.OrdinalEquals("a/b/", FilePath.From("a/").GetChildFrom(FilePath.From("a/b/c/"))?.ToString());
+            Test.OrdinalEquals("a/b/c/", FilePath.From("a/b/").GetChildFrom(FilePath.From("a/b/c/d"))?.ToString());
+            Test.OrdinalEquals("a/b/c/", FilePath.From("a/b/").GetChildFrom(FilePath.From("a/b/c/d/"))?.ToString());
+        }
+
+        [Test]
+        public static void RemoveAncestorTests()
+        {
+            Assert.Throws<InvalidOperationException>(() => FilePath.From("a/b").RemoveAncestor(FilePath.FromFileName("a")));
+            Assert.Throws<ArgumentNullException>(() => FilePath.From("a/b").RemoveAncestor(null));
+
+            // not an ancestor
+            Test.OrdinalEquals(null, FilePath.From("b").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("b/").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("b/c").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("b/c/").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("b/").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
+
+            // "same" path (still not an ancestor)
+            Test.OrdinalEquals(null, FilePath.From("a").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals(null, FilePath.From("a/").RemoveAncestor(FilePath.From("a/"))?.ToString());
+
+            // direct parent
+            Test.OrdinalEquals("b", FilePath.From("a/b").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals("b/", FilePath.From("a/b/").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals("c", FilePath.From("a/b/c").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
+            Test.OrdinalEquals("c/", FilePath.From("a/b/c/").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
+
+            // indirect parent
+            Test.OrdinalEquals("b/c", FilePath.From("a/b/c").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals("b/c/", FilePath.From("a/b/c/").RemoveAncestor(FilePath.From("a/"))?.ToString());
+            Test.OrdinalEquals("c/d", FilePath.From("a/b/c/d").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
+            Test.OrdinalEquals("c/d/", FilePath.From("a/b/c/d/").RemoveAncestor(FilePath.From("a/b/"))?.ToString());
         }
     }
 }

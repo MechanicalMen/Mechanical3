@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Mechanical3.IO.FileSystems;
 using NUnit.Framework;
 
@@ -96,22 +95,6 @@ namespace Mechanical3.Tests.IO.FileSystems
 
         public static void GetPathsTests( IFileSystem fileSystem )
         {
-            Func<FilePath[], string[]> toStringArray = paths => paths.Select(p => p.ToString()).OrderBy(str => str, FilePath.Comparer).ToArray();
-
-            Func<string[], string[], bool> arrayEquals = ( arr1, arr2 ) =>
-            {
-                if( arr1.Length != arr2.Length )
-                    return false;
-
-                for( int i = 0; i < arr1.Length; ++i )
-                {
-                    if( !FilePath.Comparer.Equals(arr1[i], arr2[i]) )
-                        return false;
-                }
-
-                return true;
-            };
-
             // invalid arguments
             Assert.Throws<ArgumentException>(() => fileSystem.GetPaths(FilePath.FromFileName("a")));
 
@@ -122,21 +105,21 @@ namespace Mechanical3.Tests.IO.FileSystems
             fileSystem.CreateDirectory(FilePath.From("f/"));
 
             // test results
-            var actualPaths = toStringArray(fileSystem.GetPaths());
-            var expectedPaths = new string[] { "a/", "e", "f/" };
-            Assert.True(arrayEquals(expectedPaths, actualPaths));
+            Test.AssertAreEqual(
+                new string[] { "a/", "e", "f/" },
+                fileSystem.GetPaths());
 
-            actualPaths = toStringArray(fileSystem.GetPaths(FilePath.From("a/")));
-            expectedPaths = new string[] { "a/b/", "a/d/" };
-            Assert.True(arrayEquals(expectedPaths, actualPaths));
+            Test.AssertAreEqual(
+                new string[] { "a/b/", "a/d/" },
+                fileSystem.GetPaths(FilePath.From("a/")));
 
-            actualPaths = toStringArray(fileSystem.GetPaths(FilePath.From("a/b/")));
-            expectedPaths = new string[] { "a/b/c" };
-            Assert.True(arrayEquals(expectedPaths, actualPaths));
+            Test.AssertAreEqual(
+                new string[] { "a/b/c" },
+                fileSystem.GetPaths(FilePath.From("a/b/")));
 
-            actualPaths = toStringArray(fileSystem.GetPaths(FilePath.From("a/d/")));
-            expectedPaths = new string[0];
-            Assert.True(arrayEquals(expectedPaths, actualPaths));
+            Test.AssertAreEqual(
+                new string[0],
+                fileSystem.GetPaths(FilePath.From("a/d/")));
 
             // delete files and directories
             fileSystem.DeleteAllFrom();

@@ -83,7 +83,9 @@
     <Compile Include="IO\FileSystems\FilePathTests.cs" />
     <Compile Include="IO\FileSystems\GenericFileSystemTests.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystemTests.cs" />
+    <Compile Include="IO\FileSystems\SubdirectoryFileSystemTests.cs" />
     <Compile Include="IO\FileSystems\MemoryFileSystemTests.cs" />
+    <Compile Include="IO\FileSystems\MountFileSystemTests.cs" />
     <Compile Include="Misc\ExceptionInfoTests.cs" />
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />

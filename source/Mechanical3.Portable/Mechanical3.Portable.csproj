@@ -82,7 +82,9 @@
     <Compile Include="IO\FileSystems\IFileSystemBase.cs" />
     <Compile Include="IO\FileSystems\IFileSystemReader.cs" />
     <Compile Include="IO\FileSystems\IFileSystemWriter.cs" />
+    <Compile Include="IO\FileSystems\SubdirectoryFileSystem.cs" />
     <Compile Include="IO\FileSystems\MemoryFileSystem.cs" />
+    <Compile Include="IO\FileSystems\MountFileSystem.cs" />
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="Loggers\LogEntry.cs" />
     <Compile Include="Loggers\LogLevel.cs" />
