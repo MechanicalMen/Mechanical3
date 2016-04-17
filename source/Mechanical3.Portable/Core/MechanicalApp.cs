@@ -27,8 +27,8 @@ namespace Mechanical3.Core
         /// Initializes the <see cref="MechanicalApp"/> and <see cref="Log"/> classes.
         /// </summary>
         /// <param name="mainEventQueue">The main <see cref="IEventQueue"/> of the application.</param>
-        /// <param name="defaultExceptionLogging">Logs each <see cref="UnhandledExceptionEvent"/> of the <see cref="MainEventQueue"/>, if <c>true</c>.</param>
-        public static void Initialize( IEventQueue mainEventQueue, bool defaultExceptionLogging = true )
+        /// <param name="logUnhandledExceptionEvents">Logs each <see cref="UnhandledExceptionEvent"/> of the <see cref="MainEventQueue"/>, if <c>true</c>.</param>
+        public static void Initialize( IEventQueue mainEventQueue, bool logUnhandledExceptionEvents = true )
         {
             if( mainEventQueue.NullReference() )
                 throw new ArgumentNullException(nameof(mainEventQueue)).StoreFileLine();
@@ -38,8 +38,8 @@ namespace Mechanical3.Core
 
             Log.Initialize(mainEventQueue);
 
-            if( defaultExceptionLogging )
-                MainEventQueue.Subscribe(DefaultExceptionLogger.Instance);
+            if( logUnhandledExceptionEvents )
+                MainEventQueue.Subscribe(DefaultExceptionEventLogger.Instance);
         }
 
         /// <summary>
@@ -90,9 +90,9 @@ namespace Mechanical3.Core
             MainEventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);
         }
 
-        private class DefaultExceptionLogger : IEventHandler<UnhandledExceptionEvent>
+        private class DefaultExceptionEventLogger : IEventHandler<UnhandledExceptionEvent>
         {
-            internal static readonly DefaultExceptionLogger Instance = new DefaultExceptionLogger();
+            internal static readonly DefaultExceptionEventLogger Instance = new DefaultExceptionEventLogger();
 
             public void Handle( UnhandledExceptionEvent evnt )
             {
@@ -113,7 +113,7 @@ namespace Mechanical3.Core
                     {
                         var asString = SafeString.DebugPrint(e);
                         System.Diagnostics.Debugger.Break();
-                        GC.KeepAlive(asString);
+                        GC.KeepAlive(asString); // asString no longer an unused variable
                     }
                 }
             }

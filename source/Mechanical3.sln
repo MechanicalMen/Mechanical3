@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mechanical3.Portable", "Mechanical3.Portable\Mechanical3.Portable.csproj", "{FFADCB78-9FDC-40FB-A697-9EF972991FFE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mechanical3.Tests", "Mechanical3.Tests\Mechanical3.Tests.csproj", "{E2E17B66-9F93-4D3E-94D4-7D65E181142E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mechanical3.NET45", "Mechanical3.NET45\Mechanical3.NET45.csproj", "{92F660D0-A907-4764-9EF0-C30EFC4DBFCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mechanical3.ScriptEditor", "Mechanical3.ScriptEditor\Mechanical3.ScriptEditor.csproj", "{D9B849CE-BB03-4D1C-A98F-072E88587806}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{92F660D0-A907-4764-9EF0-C30EFC4DBFCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92F660D0-A907-4764-9EF0-C30EFC4DBFCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92F660D0-A907-4764-9EF0-C30EFC4DBFCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9B849CE-BB03-4D1C-A98F-072E88587806}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9B849CE-BB03-4D1C-A98F-072E88587806}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9B849CE-BB03-4D1C-A98F-072E88587806}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9B849CE-BB03-4D1C-A98F-072E88587806}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

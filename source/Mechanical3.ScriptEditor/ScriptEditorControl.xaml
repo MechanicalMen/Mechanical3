@@ -1,0 +1,25 @@
+﻿<UserControl
+    x:Class="Mechanical3.ScriptEditor.ScriptEditorControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:local="clr-namespace:Mechanical3.ScriptEditor"
+    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+
+    mc:Ignorable="d" 
+    d:DesignWidth="200"
+    d:DesignHeight="200">
+
+    <Grid>
+        <avalonEdit:TextEditor
+            Name="codeEditor"
+            Margin="0"
+            SyntaxHighlighting="C#"
+            FontFamily="Consolas"
+            FontSize="14"
+            ShowLineNumbers="True"
+            WordWrap="True"
+            KeyDown="codeEditor_KeyDown"/>
+    </Grid>
+</UserControl>
