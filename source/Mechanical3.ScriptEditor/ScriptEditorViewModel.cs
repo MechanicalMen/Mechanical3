@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Mechanical3.Core;
+using Mechanical3.MVVM;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
@@ -132,36 +133,38 @@ namespace Mechanical3.ScriptEditor
             if( code.NullOrWhiteSpace() )
                 return;
 
+            // do not block UI
+            await UI.ReleaseAsync();
+
             // only execute one script at a time
             await this.scriptSemaphore.WaitAsync();
 
-            // do not block the current thread (using await still blocks it! see: https://github.com/dotnet/roslyn/issues/6928)
-            await Task.Run(() =>
+            try
             {
-                try
-                {
-                    if( this.scriptState.NullReference() )
-                        this.scriptState = CSharpScript.RunAsync(code, this.scriptOptions).Result;
-                    else
-                        this.scriptState = this.scriptState.ContinueWithAsync(code, this.scriptOptions).Result;
-                }
-                catch( CompilationErrorException ex )
-                {
-                    var diagnostics = string.Join(Environment.NewLine, ex.Diagnostics);
-                    Log.Debug("Failed to run script!", ex.Store(nameof(this.Code), code).Store(nameof(ex.Diagnostics), diagnostics));
+                if( this.scriptState.NullReference() )
+                    this.scriptState = CSharpScript.RunAsync(code, this.scriptOptions).Result;
+                else
+                    this.scriptState = this.scriptState.ContinueWithAsync(code, this.scriptOptions).Result;
+            }
+            catch( CompilationErrorException ex )
+            {
+                var diagnostics = string.Join(Environment.NewLine, ex.Diagnostics);
+                Log.Debug("Failed to run script!", ex.Store(nameof(this.Code), code).Store(nameof(ex.Diagnostics), diagnostics));
 
+                UI.Invoke(() =>
+                {
                     MessageBox.Show(
                         diagnostics,
                         "Script error!",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning,
                         MessageBoxResult.OK);
-                }
-                finally
-                {
-                    this.scriptSemaphore.Release();
-                }
-            });
+                });
+            }
+            finally
+            {
+                this.scriptSemaphore.Release();
+            }
         }
 
         /// <summary>
@@ -171,6 +174,9 @@ namespace Mechanical3.ScriptEditor
         public async Task ResetAsync()
         {
             this.ThrowIfDisposed();
+
+            // do not block UI
+            await UI.ReleaseAsync();
 
             await this.scriptSemaphore.WaitAsync();
             try
@@ -192,26 +198,67 @@ namespace Mechanical3.ScriptEditor
             // add common assemblies
             var mscorlib = typeof(object).Assembly;
             var systemCore = typeof(System.Linq.Enumerable).Assembly;
-            this.scriptOptions = this.scriptOptions.AddReferences(mscorlib, systemCore);
+            var mechanical3 = typeof(SafeString).Assembly;
+            this.scriptOptions = this.scriptOptions.AddReferences(mscorlib, systemCore, mechanical3);
 
             // add common namespaces
             this.scriptState = await CSharpScript.RunAsync("using System;", this.scriptOptions);
             this.scriptState = await this.scriptState.ContinueWithAsync("using System.Linq;", this.scriptOptions);
             this.scriptState = await this.scriptState.ContinueWithAsync("using System.Collections.Generic;", this.scriptOptions);
+            this.scriptState = await this.scriptState.ContinueWithAsync("using Mechanical3.Core;", this.scriptOptions);
         }
 
         /// <summary>
         /// Adds the specified assembly to the script session.
         /// </summary>
         /// <param name="assembly">The <see cref="Assembly"/> to add to the current session.</param>
-        public void AddAssembly( Assembly assembly )
+        /// <returns>An object representing the asynchronous operation.</returns>
+        public async Task AddAssemblyAsync( Assembly assembly )
         {
             this.ThrowIfDisposed();
 
             if( assembly.NullReference() )
                 throw new ArgumentNullException(nameof(assembly)).StoreFileLine();
 
-            Interlocked.Exchange(ref this.scriptOptions, this.scriptOptions.AddReferences(assembly));
+            // do not block UI
+            await UI.ReleaseAsync();
+
+            await this.scriptSemaphore.WaitAsync();
+            try
+            {
+                this.scriptOptions = this.scriptOptions.AddReferences(assembly);
+            }
+            finally
+            {
+                this.scriptSemaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified import to the script session (basically the "static imports" feature of C# 6).
+        /// </summary>
+        /// <param name="type">The type to import.</param>
+        /// <returns>An object representing the asynchronous operation.</returns>
+        public async Task AddImportAsync( Type type )
+        {
+            this.ThrowIfDisposed();
+
+            if( type.NullReference() )
+                throw new ArgumentNullException(nameof(type)).StoreFileLine();
+
+            // do not block UI
+            await UI.ReleaseAsync();
+
+            await this.scriptSemaphore.WaitAsync();
+            try
+            {
+                this.scriptOptions = this.scriptOptions.AddReferences(type.Assembly);
+                this.scriptOptions = this.scriptOptions.AddImports(type.FullName);
+            }
+            finally
+            {
+                this.scriptSemaphore.Release();
+            }
         }
 
         #endregion

@@ -92,6 +92,7 @@
     <Compile Include="Misc\ExceptionInfo.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
     <Compile Include="Misc\IUIThreadHandler.cs" />
+    <Compile Include="Misc\LocalizedStringComparer.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="DataStores\StringConverterCollection.cs" />
     <Compile Include="Misc\NonUIThreadAwaiter.cs" />
