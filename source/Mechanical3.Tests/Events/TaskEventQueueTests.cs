@@ -1,5 +1,4 @@
-﻿using System;
-using Mechanical3.Events;
+﻿using Mechanical3.Events;
 using NUnit.Framework;
 
 namespace Mechanical3.Tests.Events
@@ -17,11 +16,11 @@ namespace Mechanical3.Tests.Events
             Assert.Null(recorder.LastEvent);
             var evnt = new ManualEventPumpTests.TestEvent<int>();
             queue.Enqueue(evnt);
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(ManualEventPumpTests.SmallSleepTime);
             Assert.True(object.ReferenceEquals(evnt, recorder.LastEvent));
 
             queue.BeginClose();
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(ManualEventPumpTests.SmallSleepTime);
         }
     }
 }

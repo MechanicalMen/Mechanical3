@@ -91,12 +91,17 @@
     <Compile Include="Loggers\MemoryLogger.cs" />
     <Compile Include="Misc\ExceptionInfo.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
+    <Compile Include="Misc\IUIThreadHandler.cs" />
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="DataStores\StringConverterCollection.cs" />
+    <Compile Include="Misc\NonUIThreadAwaiter.cs" />
     <Compile Include="Misc\StackTraceInfo.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
     <Compile Include="Misc\StringStateCollection.cs" />
+    <Compile Include="Misc\SynchronizationContextUIHandler.cs" />
+    <Compile Include="Misc\UIThreadAwaiter.cs" />
+    <Compile Include="MVVM\UI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -111,9 +116,7 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0-rc1\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0-rc1\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Conditions\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>

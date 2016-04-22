@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="IO\FileSystems\CommonDesktopFileSystems.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystem.cs" />
+    <Compile Include="Misc\ConsoleEventQueueUIThread.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

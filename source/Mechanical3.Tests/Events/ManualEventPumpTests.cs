@@ -11,6 +11,8 @@ namespace Mechanical3.Tests.Events
     {
         #region Helpers
 
+        internal static readonly TimeSpan SmallSleepTime = TimeSpan.FromMilliseconds(100);
+
         internal class TestEvent<T> : EventBase
         {
             public T Value { get; private set; } = default(T);
@@ -85,7 +87,7 @@ namespace Mechanical3.Tests.Events
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(81, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(83, recorder.LastEvent.EnqueueSource.Value.Line);
             });
 
             // non-blocking, returns Task
@@ -103,7 +105,7 @@ namespace Mechanical3.Tests.Events
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(97, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(99, recorder.LastEvent.EnqueueSource.Value.Line);
             });
 
             // blocking, no return value
@@ -120,15 +122,15 @@ namespace Mechanical3.Tests.Events
                     Assert.False(pump.HasEvents);
                 });
 
-                System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+                System.Threading.Thread.Sleep(SmallSleepTime);
                 Assert.False(handlerTask.IsCompleted);
                 pump.EnqueueAndWait(new TestEvent<int>());
-                System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+                System.Threading.Thread.Sleep(SmallSleepTime);
                 Assert.True(handlerTask.IsCompleted);
 
                 Test.OrdinalEquals("ManualEventPumpTests.cs", recorder.LastEvent.EnqueueSource.Value.File);
                 Test.OrdinalEquals("EnqueueTests", recorder.LastEvent.EnqueueSource.Value.Member);
-                Assert.AreEqual(125, recorder.LastEvent.EnqueueSource.Value.Line);
+                Assert.AreEqual(127, recorder.LastEvent.EnqueueSource.Value.Line);
             });
         }
 
@@ -318,24 +320,24 @@ namespace Mechanical3.Tests.Events
             });
 
             // blocked by default
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(SmallSleepTime);
             Assert.False(waitingTask.IsCompleted);
 
             // handling events does not unblock it
             pump.Enqueue(new TestEvent<int>());
             pump.HandleOne();
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(SmallSleepTime);
             Assert.False(waitingTask.IsCompleted);
 
             // closing event does not unblock it
             pump.BeginClose();
             pump.HandleOne();
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(SmallSleepTime);
             Assert.False(waitingTask.IsCompleted);
 
             // unblocked after closed event has been handled
             pump.HandleOne();
-            System.Threading.Thread.Sleep(TimeSpan.FromMilliseconds(100));
+            System.Threading.Thread.Sleep(SmallSleepTime);
             Assert.True(pump.IsClosed);
             Assert.True(waitingTask.IsCompleted);
 

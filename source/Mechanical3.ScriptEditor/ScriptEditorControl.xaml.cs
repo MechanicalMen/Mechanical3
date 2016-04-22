@@ -86,7 +86,7 @@ namespace Mechanical3.ScriptEditor
             }
             catch( Exception ex )
             {
-                MechanicalApp.HandleException(ex);
+                MechanicalApp.EnqueueException(ex);
             }
         }
     }

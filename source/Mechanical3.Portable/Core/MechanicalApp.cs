@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Mechanical3.Events;
 using Mechanical3.Misc;
+using Mechanical3.MVVM;
 
 namespace Mechanical3.Core
 {
@@ -24,14 +25,23 @@ namespace Mechanical3.Core
         private static IEventQueue mainQueue;
 
         /// <summary>
-        /// Initializes the <see cref="MechanicalApp"/> and <see cref="Log"/> classes.
+        /// Initializes the <see cref="MechanicalApp"/>, <see cref="Log"/> and <see cref="UI"/> classes.
         /// </summary>
+        /// <param name="uiThreadHandler">An object representing the UI thread.</param>
         /// <param name="mainEventQueue">The main <see cref="IEventQueue"/> of the application.</param>
-        /// <param name="logUnhandledExceptionEvents">Logs each <see cref="UnhandledExceptionEvent"/> of the <see cref="MainEventQueue"/>, if <c>true</c>.</param>
-        public static void Initialize( IEventQueue mainEventQueue, bool logUnhandledExceptionEvents = true )
+        /// <param name="logUnhandledExceptionEvents">If <c>true</c>, logs each <see cref="UnhandledExceptionEvent"/> of the <see cref="EventQueue"/>.</param>
+        public static void Initialize(
+            IUIThreadHandler uiThreadHandler,
+            IEventQueue mainEventQueue,
+            bool logUnhandledExceptionEvents = true )
         {
+            if( uiThreadHandler.NullReference() )
+                throw new ArgumentNullException(nameof(uiThreadHandler)).StoreFileLine();
+
             if( mainEventQueue.NullReference() )
                 throw new ArgumentNullException(nameof(mainEventQueue)).StoreFileLine();
+
+            UI.Initialize(uiThreadHandler);
 
             if( Interlocked.CompareExchange(ref mainQueue, mainEventQueue, comparand: null).NotNullReference() )
                 throw new InvalidOperationException("Application already initialized!").StoreFileLine();
@@ -39,16 +49,16 @@ namespace Mechanical3.Core
             Log.Initialize(mainEventQueue);
 
             if( logUnhandledExceptionEvents )
-                MainEventQueue.Subscribe(DefaultExceptionEventLogger.Instance);
+                EventQueue.Subscribe(DefaultExceptionEventLogger.Instance);
         }
 
         /// <summary>
-        /// Gets the main <see cref="IEventQueue"/> of the application.
+        /// Gets the <see cref="IEventQueue"/> of the application.
         /// It will be closed just before the application terminates.
         /// Events may not be handled from the UI thread, in fact there
         /// is no reason that they should.
         /// </summary>
-        public static IEventQueue MainEventQueue
+        public static IEventQueue EventQueue
         {
             get
             {
@@ -74,20 +84,20 @@ namespace Mechanical3.Core
         ////       also initiate a crash report, as well as control application termination.
 
         /// <summary>
-        /// Enqueues an <see cref="UnhandledExceptionEvent"/> on the <see cref="MainEventQueue"/>,
+        /// Enqueues an <see cref="UnhandledExceptionEvent"/> on the <see cref="EventQueue"/>,
         /// and then returns immediately.
         /// </summary>
         /// <param name="exception">The exception to handle.</param>
         /// <param name="file">The source file that contains the caller.</param>
         /// <param name="member">The method or property name of the caller to this method.</param>
         /// <param name="line">The line number in the source file at which this method is called.</param>
-        public static void HandleException(
+        public static void EnqueueException(
             Exception exception,
             [CallerFilePath] string file = "",
             [CallerMemberName] string member = "",
             [CallerLineNumber] int line = 0 )
         {
-            MainEventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);
+            EventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);
         }
 
         private class DefaultExceptionEventLogger : IEventHandler<UnhandledExceptionEvent>

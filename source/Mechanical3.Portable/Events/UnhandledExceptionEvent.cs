@@ -5,7 +5,7 @@ namespace Mechanical3.Events
 {
     /// <summary>
     /// Represents an unhandled exception.
-    /// To invoke standard exception handling use <see cref="MechanicalApp.HandleException"/>.
+    /// To invoke standard exception handling use <see cref="MechanicalApp.EnqueueException"/>.
     /// </summary>
     public sealed class UnhandledExceptionEvent : EventBase
     {
