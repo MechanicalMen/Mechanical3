@@ -67,20 +67,8 @@ namespace Mechanical3.ScriptEditor
                     var vm = this.DataContext as ScriptEditorViewModel;
                     if( vm.NotNullReference() )
                     {
-                        var bg = this.codeEditor.Background;
-                        try
-                        {
-                            this.IsEnabled = false;
-                            this.codeEditor.Background = Brushes.Gray;
-
-                            vm.Code = this.codeEditor.Text;
-                            await vm.RunCodeAsync();
-                        }
-                        finally
-                        {
-                            this.IsEnabled = true;
-                            this.codeEditor.Background = bg;
-                        }
+                        vm.Code = this.codeEditor.Text;
+                        await vm.RunCodeAsync();
                     }
                 }
             }

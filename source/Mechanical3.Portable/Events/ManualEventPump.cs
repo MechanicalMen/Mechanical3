@@ -371,29 +371,31 @@ namespace Mechanical3.Events
             Exception unhandledException;
             this.subscribers.InvokeHandlers(e, out unhandledException);
 
-            // update internal state
-            this.OnHandlingFinished(e.Event);
-
-            // allow those waiting to continue; manage exceptions thrown
-            bool exceptionHandled;
-            e.SetHandled(unhandledException, out exceptionHandled);
+            // were there exceptions that could not be handled through their tasks?
+            // (NOTE: this must happen before OnHandlingFinished, so that exceptions in the closing event can still be enqueued)
             if( unhandledException.NotNullReference()
-             && !exceptionHandled )
+             && !e.CanHandleUnhandledExceptions )
             {
-                // enqueue & forget
-                var exceptionEvent = new UnhandledExceptionEvent(unhandledException);
                 try
                 {
+                    // enqueue & forget
+                    var exceptionEvent = new UnhandledExceptionEvent(unhandledException);
                     var srcPos = e.Event.EnqueueSource.Value;
                     this.Enqueue(exceptionEvent, srcPos.File, srcPos.Member, srcPos.Line ?? 0); // inherit the source position of the original event
                 }
                 catch( Exception ex )
                 {
-                    ex = new AggregateException("Failed to enqueue exception!", ex, unhandledException);
-                    System.Diagnostics.Debugger.Break();
-                    //// TODO: invoke the default unhandled exception processing method
+                    // we are likely already closed
+                    ex = new AggregateException("Failed to handle unhandled exception!", ex, unhandledException);
+                    MechanicalApp.EnqueueException(ex);
                 }
             }
+
+            // update internal state
+            this.OnHandlingFinished(e.Event);
+
+            // allow those waiting to continue; manage exceptions thrown
+            e.SetHandled(unhandledException);
 
             // closed and finished handling?
             if( this.IsClosed )

@@ -134,7 +134,8 @@ namespace Mechanical3.Core
                 ThrowIfDisposed_NotLocked();
 
                 // transfer recorded entries
-                if( isInitialLogger )
+                if( isInitialLogger
+                 && !(newLogger is ExceptionLogger) ) // No other logger replaced the MemoryLogger before closing
                 {
                     var asMemoryLogger = currentLogger as MemoryLogger;
                     if( asMemoryLogger.NotNullReference() )

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Mechanical3.Events;
@@ -97,7 +98,42 @@ namespace Mechanical3.Core
             [CallerMemberName] string member = "",
             [CallerLineNumber] int line = 0 )
         {
-            EventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);
+            try
+            {
+                EventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);
+            }
+            catch( Exception ex )
+            {
+                // Probably the event queue is already closed, we may not have persistent logging.
+                FailedToHandleException(new AggregateException(ex, exception.StoreFileLine(file, member, line)));
+            }
+        }
+
+        /// <summary>
+        /// This method is used only, when the standard error handling (i.e. <see cref="EnqueueException"/>) fails.
+        /// </summary>
+        /// <param name="exception">The exception to handle.</param>
+        /// <param name="file">The source file that contains the caller.</param>
+        /// <param name="member">The method or property name of the caller to this method.</param>
+        /// <param name="line">The line number in the source file at which this method is called.</param>
+        private static void FailedToHandleException(
+            Exception exception,
+            [CallerFilePath] string file = "",
+            [CallerMemberName] string member = "",
+            [CallerLineNumber] int line = 0 )
+        {
+            // NOTE: When this method is invoked, we may only have a memory logger,
+            //       but we can not even assume that much.
+            try
+            {
+                if( Debugger.IsAttached )
+                    Debugger.Break();
+
+                Log.Fatal("Error handling failed!", exception.StoreFileLine(file, member, line));
+            }
+            catch
+            {
+            }
         }
 
         private class DefaultExceptionEventLogger : IEventHandler<UnhandledExceptionEvent>

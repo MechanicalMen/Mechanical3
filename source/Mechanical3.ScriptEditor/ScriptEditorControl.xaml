@@ -4,12 +4,25 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:local="clr-namespace:Mechanical3.ScriptEditor"
     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+    xmlns:mvvm="clr-namespace:Mechanical3.MVVM;assembly=Mechanical3.Portable"
+    xmlns:swm="clr-namespace:System.Windows.Media;assembly=PresentationCore"
 
     mc:Ignorable="d" 
     d:DesignWidth="200"
     d:DesignHeight="200">
+
+    <UserControl.Resources>
+        <mvvm:NotConverter x:Key="notConverter"/>
+        <mvvm:BoolToObjectConverter x:Key="trueToGrayConverter">
+            <mvvm:BoolToObjectConverter.True>
+                <SolidColorBrush Color="Gray"/>
+            </mvvm:BoolToObjectConverter.True>
+            <mvvm:BoolToObjectConverter.False>
+                <SolidColorBrush Color="White"/>
+            </mvvm:BoolToObjectConverter.False>
+        </mvvm:BoolToObjectConverter>
+    </UserControl.Resources>
 
     <Grid>
         <avalonEdit:TextEditor
@@ -20,6 +33,8 @@
             FontSize="14"
             ShowLineNumbers="True"
             WordWrap="True"
-            KeyDown="codeEditor_KeyDown"/>
+            KeyDown="codeEditor_KeyDown"
+            IsEnabled="{Binding IsRunningScript, Converter={StaticResource notConverter}}"
+            Background="{Binding IsRunningScript, Converter={StaticResource trueToGrayConverter}}"/>
     </Grid>
 </UserControl>

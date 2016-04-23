@@ -102,6 +102,10 @@
     <Compile Include="Misc\StringStateCollection.cs" />
     <Compile Include="Misc\SynchronizationContextUIHandler.cs" />
     <Compile Include="Misc\UIThreadAwaiter.cs" />
+    <Compile Include="MVVM\BoolToObjectConverter.cs" />
+    <Compile Include="MVVM\NotConverter.cs" />
+    <Compile Include="MVVM\PropertyChangedBase.cs" />
+    <Compile Include="MVVM\SimpleConverterBase.cs" />
     <Compile Include="MVVM\UI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -119,6 +123,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Reference Include="PresentationFramework">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\PresentationFramework.dll</HintPath>
+    </Reference>
     <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>

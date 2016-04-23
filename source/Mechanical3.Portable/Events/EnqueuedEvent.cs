@@ -44,28 +44,19 @@ namespace Mechanical3.Events
             get { return this.tsc.NullReference() ? null : this.tsc.Task; }
         }
 
-        internal void SetHandled( Exception unhandledException, out bool exceptionHandled )
+        internal bool CanHandleUnhandledExceptions
         {
-            if( unhandledException.NullReference() )
-            {
-                // no handlers threw exceptions: finish up normally
-                if( this.tsc.NotNullReference() )
-                    this.tsc.SetResult(null);
+            get { return this.tsc.NotNullReference(); } // if event handlers throw exceptions, they can be handled through a task
+        }
 
-                exceptionHandled = true;
-            }
-            else
+        internal void SetHandled( Exception unhandledException )
+        {
+            if( this.tsc.NotNullReference() )
             {
-                // at least one of the handlers threw an exception
-                if( this.tsc.NotNullReference() )
-                {
-                    this.tsc.SetException(unhandledException);
-                    exceptionHandled = true;
-                }
+                if( unhandledException.NullReference() )
+                    this.tsc.SetResult(null);
                 else
-                {
-                    exceptionHandled = false;
-                }
+                    this.tsc.SetException(unhandledException); // at least one of the handlers threw an exception, and there is someone to listen to it
             }
         }
 

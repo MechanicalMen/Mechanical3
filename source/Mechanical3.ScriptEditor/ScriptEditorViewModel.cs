@@ -1,7 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,7 +13,7 @@ namespace Mechanical3.ScriptEditor
     /// <summary>
     /// The view-model to use with the <see cref="ScriptEditorControl"/>.
     /// </summary>
-    public class ScriptEditorViewModel : DisposableObject, INotifyPropertyChanged
+    public class ScriptEditorViewModel : PropertyChangedBase.Disposable
     {
         #region Constructors
 
@@ -23,6 +21,7 @@ namespace Mechanical3.ScriptEditor
         /// Initializes a new instance of the <see cref="ScriptEditorViewModel"/> class.
         /// </summary>
         public ScriptEditorViewModel()
+            : base()
         {
             this.InitializeScripting();
         }
@@ -54,22 +53,6 @@ namespace Mechanical3.ScriptEditor
 
         #endregion
 
-        #region INotifyPropertyChanged
-
-        /// <summary>
-        /// Occurs when a property value changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged( [CallerMemberName] string member = "" )
-        {
-            var handlers = this.PropertyChanged;
-            if( handlers.NotNullReference() )
-                handlers(this, new PropertyChangedEventArgs(member));
-        }
-
-        #endregion
-
         #region Text editor
 
         private string code = null;
@@ -89,7 +72,7 @@ namespace Mechanical3.ScriptEditor
                 if( !string.Equals(this.code, value, StringComparison.Ordinal) )
                 {
                     this.code = value;
-                    this.NotifyPropertyChanged();
+                    this.RaisePropertyChanged();
                 }
             }
         }
@@ -103,6 +86,7 @@ namespace Mechanical3.ScriptEditor
         private SemaphoreSlim scriptSemaphore;
         private ScriptState scriptState;
         private ScriptOptions scriptOptions;
+        private bool scriptIsRunning = false;
 
         private void InitializeScripting()
         {
@@ -122,6 +106,30 @@ namespace Mechanical3.ScriptEditor
         }
 
         /// <summary>
+        /// Gets a value indicating whether a script is currently executing.
+        /// </summary>
+        /// <value><c>true</c> if a script is currently executing; otherwise, <c>false</c>.</value>
+        public bool IsRunningScript
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                return this.scriptIsRunning;
+            }
+            private set
+            {
+                this.ThrowIfDisposed();
+
+                if( this.scriptIsRunning != value )
+                {
+                    this.scriptIsRunning = value;
+                    this.RaisePropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
         /// Runs the C# script in the <see cref="Code"/> property asynchronously.
         /// </summary>
         /// <returns>An object representing the asynchronous operation.</returns>
@@ -138,6 +146,7 @@ namespace Mechanical3.ScriptEditor
 
             // only execute one script at a time
             await this.scriptSemaphore.WaitAsync();
+            this.IsRunningScript = true;
 
             try
             {
@@ -163,6 +172,7 @@ namespace Mechanical3.ScriptEditor
             }
             finally
             {
+                this.IsRunningScript = false;
                 this.scriptSemaphore.Release();
             }
         }
