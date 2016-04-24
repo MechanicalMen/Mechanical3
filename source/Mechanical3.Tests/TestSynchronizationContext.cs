@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Mechanical3.Core;
+using Mechanical3.Misc;
 
 namespace Mechanical3.Tests
 {
@@ -11,6 +12,31 @@ namespace Mechanical3.Tests
     {
         //// NOTE: based on: http://blog.gauffin.org/2015/10/07/using-a-synchronizationcontext-in-unit-tests/
 
+        #region UIHandler
+
+        public class UIHandler : SynchronizationContextUIHandlerBase
+        {
+            public UIHandler( SynchronizationContext context )
+                : base(context)
+            {
+            }
+
+            public static UIHandler FromCurrent()
+            {
+                return new UIHandler(SynchronizationContext.Current);
+            }
+
+            public override bool IsOnUIThread()
+            {
+                // NOTE: this only works with TestSynchronizationContext!
+                return object.ReferenceEquals(this.Context, SynchronizationContext.Current);
+            }
+        }
+
+        #endregion
+
+        #region SynchronizationContext
+
         public override void Post( SendOrPostCallback d, object state )
         {
             RunOnCurrent(() => d(state));
@@ -20,6 +46,10 @@ namespace Mechanical3.Tests
         {
             RunOnCurrent(() => d(state));
         }
+
+        #endregion
+
+        #region Instance Members
 
         private void RunOnCurrent( Action action )
         {
@@ -68,5 +98,7 @@ namespace Mechanical3.Tests
             var newContext = new TestSynchronizationContext() { Name = name };
             newContext.RunOnCurrent(action);
         }
+
+        #endregion
     }
 }

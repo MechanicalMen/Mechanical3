@@ -26,7 +26,7 @@ namespace Mechanical3.Tests.Misc
 
             ManualEventPump eventPump;
             IUIThreadHandler uiHandler;
-            using( var consoleHandler = ConsoleEventQueueUIThread.FromMainThread() )
+            using( var consoleHandler = ConsoleEventQueueUIHandler.FromMainThread() )
             {
                 // event queue and ui thread handler are available
                 Assert.NotNull(eventPump = consoleHandler.EventPump);
@@ -60,7 +60,7 @@ namespace Mechanical3.Tests.Misc
 
 
             // closing the event pump disables the ui thread handler
-            var consoleHandler2 = ConsoleEventQueueUIThread.FromMainThread();
+            var consoleHandler2 = ConsoleEventQueueUIHandler.FromMainThread();
             using( consoleHandler2 )
             {
                 eventPump = consoleHandler2.EventPump;

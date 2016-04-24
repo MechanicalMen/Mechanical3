@@ -98,6 +98,10 @@ namespace Mechanical3.Core
             [CallerMemberName] string member = "",
             [CallerLineNumber] int line = 0 )
         {
+            // the only exception we'll allow to escape, is one for using this before Initialization
+            if( EventQueue.NullReference() )
+                throw new InvalidOperationException("Not yet initialized!").StoreFileLine();
+
             try
             {
                 EventQueue.Enqueue(new UnhandledExceptionEvent(exception), file, member, line);

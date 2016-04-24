@@ -12,7 +12,7 @@ namespace Mechanical3.Misc
     /// deadlock, if an event handler starts a blocking <see cref="UI"/> call (or vice versa).
     /// The UI thread "stops" when the event queue is closed.
     /// </summary>
-    public class ConsoleEventQueueUIThread : DisposableObject
+    public class ConsoleEventQueueUIHandler : DisposableObject
     {
         #region ActionEvent
 
@@ -169,7 +169,7 @@ namespace Mechanical3.Misc
 
         #region Constructors
 
-        private ConsoleEventQueueUIThread( int mainThreadID )
+        private ConsoleEventQueueUIHandler( int mainThreadID )
         {
             this.mainThreadID = mainThreadID;
             this.eventPump = new ManualEventPump();
@@ -177,16 +177,16 @@ namespace Mechanical3.Misc
         }
 
         /// <summary>
-        /// Creates a new <see cref="ConsoleEventQueueUIThread"/> instance.
+        /// Creates a new <see cref="ConsoleEventQueueUIHandler"/> instance.
         /// </summary>
         /// <param name="mainThread">The main thread; or <c>null</c> to use <see cref="Thread.CurrentThread"/>.</param>
-        /// <returns>A new <see cref="ConsoleEventQueueUIThread"/> instance.</returns>
-        public static ConsoleEventQueueUIThread FromMainThread( Thread mainThread = null )
+        /// <returns>A new <see cref="ConsoleEventQueueUIHandler"/> instance.</returns>
+        public static ConsoleEventQueueUIHandler FromMainThread( Thread mainThread = null )
         {
             if( mainThread.NullReference() )
                 mainThread = Thread.CurrentThread;
 
-            return new ConsoleEventQueueUIThread(mainThread.ManagedThreadId);
+            return new ConsoleEventQueueUIHandler(mainThread.ManagedThreadId);
         }
 
         #endregion

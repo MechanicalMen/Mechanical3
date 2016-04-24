@@ -52,7 +52,7 @@ namespace Mechanical3.IO.FileSystems
         /// <param name="fileSystem">The file system to query.</param>
         /// <param name="path">The path specifying the file or directory to search for.</param>
         /// <returns><c>true</c> if the file or directory exists; otherwise, <c>false</c>.</returns>
-        public static bool Exists( this IFileSystem fileSystem, FilePath path )
+        public static bool Exists( this IFileSystemReader fileSystem, FilePath path )
         {
             if( fileSystem.NullReference() )
                 throw new ArgumentNullException(nameof(fileSystem)).StoreFileLine();

@@ -42,7 +42,7 @@ namespace Mechanical3.Tests.Core
             Assert.Throws<InvalidOperationException>(() => UI.InvokeAsync(() => { }));
             Assert.Throws<InvalidOperationException>(() => Log.SetLogger(new MemoryLogger()));
 
-            using( var consoleHandler = ConsoleEventQueueUIThread.FromMainThread() )
+            using( var consoleHandler = ConsoleEventQueueUIHandler.FromMainThread() )
             {
                 // initialization
                 Assert.Throws<ArgumentNullException>(() => MechanicalApp.Initialize((IUIThreadHandler)null, consoleHandler.EventPump));

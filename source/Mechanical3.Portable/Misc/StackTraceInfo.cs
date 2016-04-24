@@ -26,6 +26,9 @@ namespace Mechanical3.Misc
 
                 // "  at member"
                 new Regex(@"^\s+at\s+(?<member>.+)$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), // have seen examples of this
+
+                // --- End of stack trace from previous location where exception was thrown ---
+                new Regex(@"^---[^-]+---$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline), // have seen examples of this with async/await (possibly due to custom awaiters)
             };
 
         private readonly FileLineInfo[] frames;
@@ -83,11 +86,12 @@ namespace Mechanical3.Misc
                         var match = regex.Match(line);
                         if( match.Success )
                         {
-                            parsedFrames.Add(
-                                new FileLineInfo(
-                                    match.Groups["file"].Success ? match.Groups["file"].Value : null,
-                                    match.Groups["member"].Success ? match.Groups["member"].Value : null,
-                                    match.Groups["line"].Success ? int.Parse(match.Groups["line"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture) : (int?)null));
+                            string file = match.Groups["file"].Success ? match.Groups["file"].Value : null;
+                            string member = match.Groups["member"].Success ? match.Groups["member"].Value : null;
+                            int? fileLine = match.Groups["line"].Success ? int.Parse(match.Groups["line"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture) : (int?)null;
+
+                            if( member.NotNullReference() )
+                                parsedFrames.Add(new FileLineInfo(file, member, fileLine));
 
                             success = true;
                             break;

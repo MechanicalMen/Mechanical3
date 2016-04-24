@@ -100,7 +100,7 @@
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
     <Compile Include="Misc\StringStateCollection.cs" />
-    <Compile Include="Misc\SynchronizationContextUIHandler.cs" />
+    <Compile Include="Misc\SynchronizationContextUIHandlerBase.cs" />
     <Compile Include="Misc\UIThreadAwaiter.cs" />
     <Compile Include="MVVM\BoolToObjectConverter.cs" />
     <Compile Include="MVVM\NotConverter.cs" />

@@ -3,7 +3,7 @@
 namespace Mechanical3.MVVM
 {
     /// <summary>
-    /// Negates a <see cref="Boolean"/> value.
+    /// Negates a <see cref="bool"/> value.
     /// </summary>
     public class NotConverter : SimpleConverterBase<bool, bool>
     {

@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mechanical3.Core;
 using Mechanical3.Events;
-using Mechanical3.Misc;
 using Mechanical3.MVVM;
 using Mechanical3.Tests.Events;
 using NUnit.Framework;
@@ -35,7 +34,7 @@ namespace Mechanical3.Tests.MVVM
                 {
                     var eventPump = new ManualEventPump();
                     MechanicalApp.Initialize(
-                        SynchronizationContextUIHandler.FromCurrent(),
+                        TestSynchronizationContext.UIHandler.FromCurrent(),
                         eventPump);
 
                     var uiContext = SynchronizationContext.Current;
@@ -68,7 +67,7 @@ namespace Mechanical3.Tests.MVVM
                 {
                     var eventPump = new ManualEventPump();
                     MechanicalApp.Initialize(
-                        SynchronizationContextUIHandler.FromCurrent(),
+                        TestSynchronizationContext.UIHandler.FromCurrent(),
                         eventPump);
 
                     this.CombinedTests_StartsOnUI().Wait();
@@ -166,7 +165,7 @@ namespace Mechanical3.Tests.MVVM
                 {
                     var eventPump = new ManualEventPump();
                     MechanicalApp.Initialize(
-                        new SynchronizationContextUIHandler(
+                        new TestSynchronizationContext.UIHandler(
                             new SilentSynchronizationContextWrapper( // forces IUIThreadHandler to swallow exceptions
                                 SynchronizationContext.Current)),
                         eventPump);

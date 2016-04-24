@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using Mechanical3.Misc;
 using NUnit.Framework;
 
 namespace Mechanical3.Tests.Misc
@@ -13,7 +12,7 @@ namespace Mechanical3.Tests.Misc
             TestSynchronizationContext.RunOnNew(() =>
             {
                 var uiContext = SynchronizationContext.Current;
-                var uiHandler = SynchronizationContextUIHandler.FromCurrent();
+                var uiHandler = TestSynchronizationContext.UIHandler.FromCurrent();
                 Assert.True(uiHandler.IsOnUIThread());
 
                 TestSynchronizationContext.RunOnNew(() =>
