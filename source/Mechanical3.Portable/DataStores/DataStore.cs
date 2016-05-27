@@ -23,6 +23,11 @@ namespace Mechanical3.DataStores
     /// </summary>
     public static class DataStore
     {
+        /// <summary>
+        /// Compares data store names.
+        /// </summary>
+        public static readonly StringComparer NameComparer = StringComparer.Ordinal;
+
         #region IsValidName
 
         /// <summary>

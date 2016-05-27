@@ -10,7 +10,7 @@ namespace Mechanical3.Tests.DataStores.Xml
     {
         #region Private Methods
 
-        private static string ToString( XmlFileFormatReaderTests.ReaderOutput[] outputs )
+        private static string ToString( TestData.FileFormatReaderOutput[] outputs )
         {
             var sb = new StringBuilder();
             using( var writer = XmlFileFormatWriter.From(sb) )
@@ -39,27 +39,15 @@ namespace Mechanical3.Tests.DataStores.Xml
         {
             Test.OrdinalEquals(
                 Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_ArrayRoot_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_ArrayRoot_Format3));
-
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_ValueRoot_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_ValueRoot_Format3));
-
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_EmptyValueRoot_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_EmptyValueRoot_Format3));
-
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_NullValueRoot_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_NullValueRoot_Format3));
+                ToString(TestData.FileFormatReaderOutput.SimpleOutput_ArrayRoot));
 
             Test.OrdinalEquals(
                 Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_NestedObjects_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_NestedObjects));
+                ToString(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects));
 
             Test.OrdinalEquals(
                 Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_NestedArrays_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                ToString(XmlFileFormatReaderTests.SimpleOutput_NestedArrays_Format3));
+                ToString(TestData.FileFormatReaderOutput.SimpleOutput_NestedArrays));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Mechanical3.DataStores;
+﻿using System;
+using System.Linq;
+using Mechanical3.DataStores;
 using Mechanical3.DataStores.Xml;
 using NUnit.Framework;
 
@@ -7,64 +9,16 @@ namespace Mechanical3.Tests.DataStores.Xml
     [TestFixture(Category = "DataStores")]
     public static class XmlFileFormatReaderTests
     {
-        #region ReaderOutput
-
-        internal class ReaderOutput
+        static XmlFileFormatReaderTests()
         {
-            public bool Result { get; }
-            public DataStoreToken Token { get; }
-            public string Name { get; }
-            public string Value { get; }
-
-            internal ReaderOutput( bool result, DataStoreToken token, string name, string value )
-            {
-                this.Result = result;
-                this.Token = token;
-                this.Name = name;
-                this.Value = value;
-            }
-
-            internal static ReaderOutput True( DataStoreToken token = default(DataStoreToken), string name = null, string value = null )
-            {
-                return new ReaderOutput(true, token, name, value);
-            }
-
-            internal static ReaderOutput False( DataStoreToken token = default(DataStoreToken), string name = null, string value = null )
-            {
-                return new ReaderOutput(false, token, name, value);
-            }
-
-            private static void AssertResultEquals( IDataStoreTextFileFormatReader reader, ReaderOutput expectedOutput )
-            {
-                Assert.NotNull(reader);
-                Assert.NotNull(expectedOutput);
-
-                DataStoreToken actualToken;
-                string actualName, actualValue;
-                bool actualResult = reader.TryReadToken(out actualToken, out actualName, out actualValue);
-
-                Assert.AreEqual(expectedOutput.Result, actualResult);
-                Assert.AreEqual(expectedOutput.Token, actualToken);
-                Test.OrdinalEquals(expectedOutput.Name, actualName);
-                Test.OrdinalEquals(expectedOutput.Value, actualValue);
-            }
-
-            internal static void AssertResultsEqual( IDataStoreTextFileFormatReader reader, ReaderOutput[] expectedOutputs )
-            {
-                Assert.NotNull(expectedOutputs);
-
-                using( reader )
-                {
-                    foreach( var output in expectedOutputs )
-                        AssertResultEquals(reader, output);
-                }
-            }
+            ComplexOutputs_Format3 = TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: "i")).ToArray();
+            ComplexOutputs_Format3[0] = TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, name: "DataStore");
+            ComplexOutputs_Format3[ComplexOutputs_Format3.Length - 4] = TestData.FileFormatReaderOutput.True(DataStoreToken.End, name: "DataStore");
         }
-
-        #endregion
 
         #region Complex tests
 
+        internal static readonly TestData.FileFormatReaderOutput[] ComplexOutputs_Format3;
         internal const string ComplexXml_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
   <value_not_empty>a</value_not_empty>
@@ -86,38 +40,6 @@ namespace Mechanical3.Tests.DataStores.Xml
   <array_empty type=""array""></array_empty>
 </DataStore>";
 
-        internal static readonly ReaderOutput[] ComplexOutputs_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.ObjectStart, "DataStore"),
-
-            ReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
-            ReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
-            ReaderOutput.True(DataStoreToken.Value, "value_null", null),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "object_not_empty"),
-            ReaderOutput.True(DataStoreToken.Value, "a", "b"),
-            ReaderOutput.True(DataStoreToken.End, "object_not_empty"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "object_empty"),
-            ReaderOutput.True(DataStoreToken.End, "object_empty"),
-
-            ReaderOutput.True(DataStoreToken.ArrayStart, "as_array"),
-            ReaderOutput.True(DataStoreToken.Value, "i", "a"),
-            ReaderOutput.True(DataStoreToken.Value, "i", string.Empty),
-            ReaderOutput.True(DataStoreToken.Value, "i", null),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "i"),
-            ReaderOutput.True(DataStoreToken.Value, "a", "b"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.End, "as_array"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "array_empty"),
-            ReaderOutput.True(DataStoreToken.End, "array_empty"),
-
-            ReaderOutput.True(DataStoreToken.End, "DataStore"),
-            ReaderOutput.False(),
-            ReaderOutput.False(),
-            ReaderOutput.False(),
-        };
-
         private const string ComplexXml_Format2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <root>
     <NameOfRootDataStoreObject>
@@ -131,33 +53,33 @@ namespace Mechanical3.Tests.DataStores.Xml
     </NameOfRootDataStoreObject>
 </root>";
 
-        private static readonly ReaderOutput[] ComplexOutputs_Format2 = new ReaderOutput[]
+        private static readonly TestData.FileFormatReaderOutput[] ComplexOutputs_Format2 = new TestData.FileFormatReaderOutput[]
         {
-            ReaderOutput.True(DataStoreToken.ObjectStart, "NameOfRootDataStoreObject"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "NameOfRootDataStoreObject"),
 
-            ReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
-            ReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
 
-            ReaderOutput.True(DataStoreToken.ObjectStart, "object_not_empty"),
-            ReaderOutput.True(DataStoreToken.Value, "a", "b"),
-            ReaderOutput.True(DataStoreToken.End, "object_not_empty"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "object_empty"),
-            ReaderOutput.True(DataStoreToken.End, "object_empty"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "object_not_empty"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "a", "b"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.End, "object_not_empty"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "object_empty"),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.End, "object_empty"),
 
-            ReaderOutput.True(DataStoreToken.End, "NameOfRootDataStoreObject"),
-            ReaderOutput.False(),
-            ReaderOutput.False(),
-            ReaderOutput.False(),
+                TestData.FileFormatReaderOutput.True(DataStoreToken.End, "NameOfRootDataStoreObject"),
+                TestData.FileFormatReaderOutput.False(),
+                TestData.FileFormatReaderOutput.False(),
+                TestData.FileFormatReaderOutput.False(),
         };
 
         [Test]
         public static void ComplexXmlReaderTests()
         {
-            ReaderOutput.AssertResultsEqual(
+            TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(ComplexXml_Format3),
-                ComplexOutputs_Format3);
+                ToXmlOutputs(TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: "i")).ToArray(), rootName: "DataStore"));
 
-            ReaderOutput.AssertResultsEqual(
+            TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(ComplexXml_Format2),
                 ComplexOutputs_Format2);
         }
@@ -172,14 +94,6 @@ namespace Mechanical3.Tests.DataStores.Xml
   <i>b</i>
 </DataStore>";
 
-        // testing different root names here as well
-        internal const string SimpleXml_ValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<value_not_empty formatVersion=""3"">a</value_not_empty>";
-        internal const string SimpleXml_EmptyValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<value_empty formatVersion=""3"" type=""value""></value_empty>";
-        internal const string SimpleXml_NullValueRoot_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<value_null formatVersion=""3"" />";
-
         internal const string SimpleXml_NestedObjects_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
   <a type=""object""></a>
@@ -191,6 +105,7 @@ namespace Mechanical3.Tests.DataStores.Xml
   <c type=""object""></c>
 </DataStore>";
 
+        // testing different root name here as well
         internal const string SimpleXml_NestedArrays_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""array"">
   <i type=""array""></i>
@@ -202,111 +117,52 @@ namespace Mechanical3.Tests.DataStores.Xml
   <i type=""array""></i>
 </DataStore>";
 
-        internal static readonly ReaderOutput[] SimpleOutput_ArrayRoot_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
-            ReaderOutput.True(DataStoreToken.Value, "i", "a"),
-            ReaderOutput.True(DataStoreToken.Value, "i", "b"),
-            ReaderOutput.True(DataStoreToken.End, "DataStore"),
-            ReaderOutput.False(),
-        };
-
-        internal static readonly ReaderOutput[] SimpleOutput_ValueRoot_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.Value, "value_not_empty", "a"),
-            ReaderOutput.False(),
-        };
-
-        internal static readonly ReaderOutput[] SimpleOutput_EmptyValueRoot_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.Value, "value_empty", string.Empty),
-            ReaderOutput.False(),
-        };
-
-        internal static readonly ReaderOutput[] SimpleOutput_NullValueRoot_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.Value, "value_null", null),
-            ReaderOutput.False(),
-        };
-
-        internal static readonly ReaderOutput[] SimpleOutput_NestedObjects = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.ObjectStart, "DataStore"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "a"),
-            ReaderOutput.True(DataStoreToken.End, "a"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "b"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "b"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "b"),
-            ReaderOutput.True(DataStoreToken.End, "b"),
-            ReaderOutput.True(DataStoreToken.End, "b"),
-            ReaderOutput.True(DataStoreToken.End, "b"),
-            ReaderOutput.True(DataStoreToken.ObjectStart, "c"),
-            ReaderOutput.True(DataStoreToken.End, "c"),
-            ReaderOutput.True(DataStoreToken.End, "DataStore"),
-            ReaderOutput.False(),
-        };
-
-        internal static readonly ReaderOutput[] SimpleOutput_NestedArrays_Format3 = new ReaderOutput[]
-        {
-            ReaderOutput.True(DataStoreToken.ArrayStart, "DataStore"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.ArrayStart, "i"),
-            ReaderOutput.True(DataStoreToken.End, "i"),
-            ReaderOutput.True(DataStoreToken.End, "DataStore"),
-            ReaderOutput.False(),
-        };
-
         private const string SimpleXml_NestedObjects_Format2 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <root>
-    <DataStore>
-        <a></a>
-        <b>
-            <b>
-                <b></b>
-            </b>
-        </b>
-        <c></c>
-    </DataStore>
+  <DataStore>
+    <a></a>
+    <b>
+      <b>
+        <b></b>
+      </b>
+    </b>
+    <c></c>
+  </DataStore>
 </root>";
+
+        private static TestData.FileFormatReaderOutput[] ToXmlOutputs( TestData.FileFormatReaderOutput[] outputs, string rootName )
+        {
+            outputs = outputs.Select(op => TestData.FileFormatReaderOutput.From(op, nullNameReplacement: "i")).ToArray();
+
+            var o = outputs[0];
+            outputs[0] = TestData.FileFormatReaderOutput.True(o.Token, rootName, o.Value);
+
+            int index = outputs.Select(( op, i ) => Tuple.Create(op, i)).Reverse().Where(t => t.Item1.Result).First().Item2; // the last non-false index
+            o = outputs[index];
+            outputs[index] = TestData.FileFormatReaderOutput.True(o.Token, rootName, o.Value);
+
+            return outputs;
+        }
 
         [Test]
         public static void SimpleXmlReaderTests()
         {
-            ReaderOutput.AssertResultsEqual(
+            TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(SimpleXml_ArrayRoot_Format3),
-                SimpleOutput_ArrayRoot_Format3);
+                ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_ArrayRoot, rootName: "DataStore"));
 
-            ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SimpleXml_ValueRoot_Format3),
-                SimpleOutput_ValueRoot_Format3);
-
-            ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SimpleXml_EmptyValueRoot_Format3),
-                SimpleOutput_EmptyValueRoot_Format3);
-
-            ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SimpleXml_NullValueRoot_Format3),
-                SimpleOutput_NullValueRoot_Format3);
-
-            ReaderOutput.AssertResultsEqual(
+            TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format3),
-                SimpleOutput_NestedObjects);
+                ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects, rootName: "DataStore"));
 
-            ReaderOutput.AssertResultsEqual(
-                XmlFileFormatReader.FromXml(SimpleXml_NestedArrays_Format3),
-                SimpleOutput_NestedArrays_Format3);
+            TestData.AssertEquals(
+                XmlFileFormatReader.FromXml(SimpleXml_NestedArrays_Format3.Replace("DataStore", "RandomName")), // different root name test
+                ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedArrays, rootName: "RandomName"));
 
 
-            ReaderOutput.AssertResultsEqual(
+            TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format2),
-                SimpleOutput_NestedObjects);
+                ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects, rootName: "DataStore"));
         }
 
         #endregion

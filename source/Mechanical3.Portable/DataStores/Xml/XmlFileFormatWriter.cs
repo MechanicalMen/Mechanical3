@@ -181,22 +181,27 @@ namespace Mechanical3.DataStores.Xml
         {
             this.ThrowIfDisposed();
 
-            if( !this.parents.IsRoot
-             && !this.parents.DirectParent.IsObject )
+            if( this.parents.IsRoot )
             {
-                // generate name automatically for array children
-                name = "i";
+                name = "DataStore";
             }
-            else if( !this.parents.IsRoot
-                  && this.parents.DirectParent.IsObject
-                  && token == DataStoreToken.End )
+            else
             {
-                // use stored name for End tokens
-                name = this.parents.DirectParent.Name;
-            }
-            else if( name.NullOrEmpty() )
-            {
-                throw new ArgumentException().Store(nameof(token), token).Store(nameof(name), name);
+                if( !this.parents.DirectParent.IsObject )
+                {
+                    // generate name automatically for array children
+                    name = "i";
+                }
+                else if( this.parents.DirectParent.IsObject
+                      && token == DataStoreToken.End )
+                {
+                    // use stored name for End tokens
+                    name = this.parents.DirectParent.Name;
+                }
+                else if( name.NullOrEmpty() )
+                {
+                    throw new ArgumentException().Store(nameof(token), token).Store(nameof(name), name);
+                }
             }
 
             switch( token )

@@ -142,9 +142,6 @@ namespace Mechanical3.DataStores
             this.ThrowIfNameRequiredAndMissing();
             this.ThrowIfMultipleRoots();
 
-            if( this.parents.IsRoot )
-                this.nameOfNextNode = "DataStore";
-
             this.parents.PushArray(this.nameOfNextNode);
             this.file.WriteToken(DataStoreToken.ArrayStart, this.nameOfNextNode, value: null, valueType: null);
             this.nameOfNextNode = null;
@@ -159,9 +156,6 @@ namespace Mechanical3.DataStores
             this.ThrowIfDisposed();
             this.ThrowIfNameRequiredAndMissing();
             this.ThrowIfMultipleRoots();
-
-            if( this.parents.IsRoot )
-                this.nameOfNextNode = "DataStore";
 
             this.parents.PushObject(this.nameOfNextNode);
             this.file.WriteToken(DataStoreToken.ObjectStart, this.nameOfNextNode, value: null, valueType: null);

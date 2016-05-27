@@ -1,7 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
 using Mechanical3.DataStores;
-using Mechanical3.DataStores.Xml;
-using Mechanical3.Tests.DataStores.Xml;
 using NUnit.Framework;
 
 namespace Mechanical3.Tests.DataStores
@@ -14,26 +12,26 @@ namespace Mechanical3.Tests.DataStores
         [Test]
         public static void ComplexTextWriterTests()
         {
-            var sb = new StringBuilder();
-            using( var writer = new DataStoreTextWriter(XmlFileFormatWriter.From(sb)) )
+            var outputWriter = new TestData.FileFormatReaderOutput.Writer();
+            using( var writer = new DataStoreTextWriter(outputWriter) )
             {
                 writer.WriteObjectStart();
 
-                writer.Write("value_not_empty", "a");
-                writer.Write("value_empty", string.Empty);
-                writer.Write("value_null", (string)null);
+                writer.WriteValue("value_not_empty", "a");
+                writer.WriteValue("value_empty", string.Empty);
+                writer.WriteValue("value_null", (string)null);
                 writer.WriteObjectStart("object_not_empty");
-                writer.Write("a", "b");
+                writer.WriteValue("a", "b");
                 writer.WriteEnd();
                 writer.WriteObjectStart("object_empty");
                 writer.WriteEnd();
 
                 writer.WriteArrayStart("as_array");
-                writer.Write("a");
-                writer.Write(string.Empty);
-                writer.Write((string)null);
+                writer.WriteValue("a");
+                writer.WriteValue(string.Empty);
+                writer.WriteValue((string)null);
                 writer.WriteObjectStart();
-                writer.Write("a", "b");
+                writer.WriteValue("a", "b");
                 writer.WriteEnd();
                 writer.WriteObjectStart();
                 writer.WriteEnd();
@@ -44,9 +42,9 @@ namespace Mechanical3.Tests.DataStores
                 writer.WriteEnd();
             }
 
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.ComplexXml_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                sb.ToString());
+            TestData.AssertEquals(
+                outputWriter.ToArray(),
+                TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: null)).ToArray());
         }
 
         #endregion
@@ -56,21 +54,21 @@ namespace Mechanical3.Tests.DataStores
         [Test]
         public static void SimpleTextWriterTests()
         {
-            var sb = new StringBuilder();
-            using( var writer = new DataStoreTextWriter(XmlFileFormatWriter.From(sb)) )
+            var outputWriter = new TestData.FileFormatReaderOutput.Writer();
+            using( var writer = new DataStoreTextWriter(outputWriter) )
             {
                 writer.WriteArrayStart();
-                writer.Write("a");
-                writer.Write("b");
+                writer.WriteValue("a");
+                writer.WriteValue("b");
                 writer.WriteEnd();
             }
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_ArrayRoot_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                sb.ToString());
+            TestData.AssertEquals(
+                outputWriter.ToArray(),
+                TestData.FileFormatReaderOutput.SimpleOutput_ArrayRoot);
 
 
-            sb.Clear();
-            using( var writer = new DataStoreTextWriter(XmlFileFormatWriter.From(sb)) )
+            outputWriter = new TestData.FileFormatReaderOutput.Writer();
+            using( var writer = new DataStoreTextWriter(outputWriter) )
             {
                 writer.WriteObjectStart();
                 writer.WriteObjectStart("a");
@@ -85,13 +83,13 @@ namespace Mechanical3.Tests.DataStores
                 writer.WriteEnd();
                 writer.WriteEnd();
             }
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_NestedObjects_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                sb.ToString());
+            TestData.AssertEquals(
+                outputWriter.ToArray(),
+                TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects);
 
 
-            sb.Clear();
-            using( var writer = new DataStoreTextWriter(XmlFileFormatWriter.From(sb)) )
+            outputWriter = new TestData.FileFormatReaderOutput.Writer();
+            using( var writer = new DataStoreTextWriter(outputWriter) )
             {
                 writer.WriteArrayStart();
                 writer.WriteArrayStart();
@@ -106,9 +104,9 @@ namespace Mechanical3.Tests.DataStores
                 writer.WriteEnd();
                 writer.WriteEnd();
             }
-            Test.OrdinalEquals(
-                Test.ReplaceLineTerminators(XmlFileFormatReaderTests.SimpleXml_NestedArrays_Format3, DataStoreFileFormatWriterOptions.Default.NewLine),
-                sb.ToString());
+            TestData.AssertEquals(
+                outputWriter.ToArray(),
+                TestData.FileFormatReaderOutput.SimpleOutput_NestedArrays);
         }
 
         #endregion

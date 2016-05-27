@@ -76,6 +76,7 @@
     <Compile Include="DataStores\ISO8601ConverterTests.cs" />
     <Compile Include="DataStores\RoundTripStringConverterTests.cs" />
     <Compile Include="DataStores\StringConverterCollectionTests.cs" />
+    <Compile Include="DataStores\TestData.cs" />
     <Compile Include="DataStores\Xml\XmlFileFormatReaderTests.cs" />
     <Compile Include="DataStores\Xml\XmlFileFormatWriterTests.cs" />
     <Compile Include="Events\ManualEventPumpTests.cs" />
