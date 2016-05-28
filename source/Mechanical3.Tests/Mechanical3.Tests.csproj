@@ -74,6 +74,8 @@
     <Compile Include="DataStores\DataStoreTextReaderTests.cs" />
     <Compile Include="DataStores\DataStoreTextWriterTests.cs" />
     <Compile Include="DataStores\ISO8601ConverterTests.cs" />
+    <Compile Include="DataStores\Json\JsonFileFormatReaderTests.cs" />
+    <Compile Include="DataStores\Json\JsonFileFormatWriterTests.cs" />
     <Compile Include="DataStores\RoundTripStringConverterTests.cs" />
     <Compile Include="DataStores\StringConverterCollectionTests.cs" />
     <Compile Include="DataStores\TestData.cs" />

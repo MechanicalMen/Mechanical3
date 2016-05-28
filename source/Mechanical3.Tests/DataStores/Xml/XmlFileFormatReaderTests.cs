@@ -9,16 +9,9 @@ namespace Mechanical3.Tests.DataStores.Xml
     [TestFixture(Category = "DataStores")]
     public static class XmlFileFormatReaderTests
     {
-        static XmlFileFormatReaderTests()
-        {
-            ComplexOutputs_Format3 = TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: "i")).ToArray();
-            ComplexOutputs_Format3[0] = TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, name: "DataStore");
-            ComplexOutputs_Format3[ComplexOutputs_Format3.Length - 4] = TestData.FileFormatReaderOutput.True(DataStoreToken.End, name: "DataStore");
-        }
-
         #region Complex tests
 
-        internal static readonly TestData.FileFormatReaderOutput[] ComplexOutputs_Format3;
+        internal static readonly TestData.FileFormatReaderOutput[] ComplexOutputs_Format3 = TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: "i")).ToArray();
         internal const string ComplexXml_Format3 = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <DataStore formatVersion=""3"" type=""object"">
   <value_not_empty>a</value_not_empty>
@@ -77,7 +70,7 @@ namespace Mechanical3.Tests.DataStores.Xml
         {
             TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(ComplexXml_Format3),
-                ToXmlOutputs(TestData.TextReaderOutput.ComplexOutputs.Select(o => TestData.FileFormatReaderOutput.From(o, nullNameReplacement: "i")).ToArray(), rootName: "DataStore"));
+                ToXmlOutputs(ComplexOutputs_Format3, rootName: "DataStore"));
 
             TestData.AssertEquals(
                 XmlFileFormatReader.FromXml(ComplexXml_Format2),

@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStores\Json\JsonFileFormatReader.cs" />
+    <Compile Include="DataStores\Json\JsonFileFormatWriter.cs" />
     <Compile Include="IO\FileSystems\CommonDesktopFileSystems.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystem.cs" />
     <Compile Include="Misc\ConsoleEventQueueUIHandler.cs" />

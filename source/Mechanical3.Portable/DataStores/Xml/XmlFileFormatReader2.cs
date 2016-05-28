@@ -103,7 +103,7 @@ namespace Mechanical3.DataStores.Xml
         {
             this.ThrowIfDisposed();
 
-            return ((IXmlLineInfo)this.xmlReader).HasLineInfo();
+            return this.xmlReader is IXmlLineInfo;
         }
 
         /// <summary>
@@ -114,9 +114,10 @@ namespace Mechanical3.DataStores.Xml
         {
             get
             {
-                this.ThrowIfDisposed();
-
-                return ((IXmlLineInfo)this.xmlReader).LineNumber;
+                if( this.HasLineInfo() )
+                    return ((IXmlLineInfo)this.xmlReader).LineNumber;
+                else
+                    throw new NotSupportedException();
             }
         }
 
@@ -128,9 +129,10 @@ namespace Mechanical3.DataStores.Xml
         {
             get
             {
-                this.ThrowIfDisposed();
-
-                return ((IXmlLineInfo)this.xmlReader).LinePosition;
+                if( this.HasLineInfo() )
+                    return ((IXmlLineInfo)this.xmlReader).LinePosition;
+                else
+                    throw new NotSupportedException();
             }
         }
 

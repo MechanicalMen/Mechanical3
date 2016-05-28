@@ -100,7 +100,7 @@ namespace Mechanical3.DataStores.Xml
         public static IDataStoreTextFileFormatReader FromXml( string xml )
         {
             if( xml.NullOrEmpty() )
-                throw new ArgumentException("Xml readers can only be created from valid xml ").Store(nameof(xml), xml);
+                throw new ArgumentException("Xml readers can only be created from valid xml!").Store(nameof(xml), xml);
 
             return From(new StringReader(xml));
         }
