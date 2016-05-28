@@ -248,7 +248,7 @@ namespace Mechanical3.DataStores
         /// <typeparam name="T">The type to serialize an instance of.</typeparam>
         /// <param name="value">The value content to write.</param>
         /// <param name="converter">The converter to use to serialize the <paramref name="value"/>; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
-        public void Write<T>( T value, IStringConverter<T> converter = null )
+        public void WriteValue<T>( T value, IStringConverter<T> converter = null )
         {
             if( converter.NullReference() )
                 converter = this.Converters.GetConverter<T>();
@@ -264,10 +264,10 @@ namespace Mechanical3.DataStores
         /// <param name="name">The data store name to use.</param>
         /// <param name="value">The value content to write.</param>
         /// <param name="converter">The converter to use to serialize the <paramref name="value"/>; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
-        public void Write<T>( string name, T value, IStringConverter<T> converter = null )
+        public void WriteValue<T>( string name, T value, IStringConverter<T> converter = null )
         {
             this.WriteName(name);
-            this.Write<T>(value, converter);
+            this.WriteValue<T>(value, converter);
         }
 
         #endregion

@@ -104,6 +104,25 @@ namespace Mechanical3.DataStores
             return exception;
         }
 
+        private void AssertToken( DataStoreToken token, string name )
+        {
+            try
+            {
+                if( this.Token != token )
+                    throw new FormatException("Unexpected token found!").Store("expectedToken", token).Store("actualToken", this.Token);
+
+                if( name.NotNullReference()
+                 && !DataStore.NameComparer.Equals(name, this.Name) )
+                    throw new FormatException("Name mismatch!").Store("expectedName", name);
+            }
+            catch( Exception ex )
+            {
+                ex.Store(nameof(this.Path), this.Path); // contains the actual name
+                this.AddLineInfo(ex);
+                throw;
+            }
+        }
+
         #endregion
 
         #region IDisposableObject
@@ -386,6 +405,123 @@ namespace Mechanical3.DataStores
 
                 return this.parents.GetCurrentPath(this.token == DataStoreToken.Value, this.name, this.index);
             }
+        }
+
+        #endregion
+
+        #region Extended Members
+
+        /// <summary>
+        /// Tries to read the next token from the stream.
+        /// Throws an exception if that fails.
+        /// </summary>
+        public void AssertCanRead()
+        {
+            if( !this.Read() )
+                throw new FormatException("Unexpected end of stream!").StoreFileLine(); // no path information available here
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at an ObjectStart token.
+        /// </summary>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        public void AssertObjectStart( string name = null )
+        {
+            this.AssertToken(DataStoreToken.ObjectStart, name);
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at an ArrayStart token.
+        /// </summary>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        public void AssertArrayStart( string name = null )
+        {
+            this.AssertToken(DataStoreToken.ArrayStart, name);
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at an End token.
+        /// </summary>
+        public void AssertEnd()
+        {
+            this.AssertToken(DataStoreToken.End, name: null);
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at a Value token, and returns it's string content.
+        /// </summary>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        /// <returns>The string content of the Value token.</returns>
+        public string GetValue( string name = null )
+        {
+            this.AssertToken(DataStoreToken.Value, name);
+            return this.Value;
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at a Value token, and returns it's content.
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize an instance of.</typeparam>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        /// <param name="converter">The converter to use to deserialize the string content; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
+        /// <returns>The content of the Value token.</returns>
+        public T GetValue<T>( string name = null, IStringConverter<T> converter = null )
+        {
+            string stringValue = this.GetValue(name);
+            return DataStore.Parse(stringValue, converter ?? this.Converters.GetConverter<T>());
+        }
+
+        /// <summary>
+        /// Reads an ObjectStart token from the stream.
+        /// </summary>
+        /// <param name="name">The expected name of the token; or <c>null</c> to skip name comparison.</param>
+        public void ReadObjectStart( string name = null )
+        {
+            this.AssertCanRead();
+            this.AssertObjectStart(name);
+        }
+
+        /// <summary>
+        /// Reads an ArrayStart token from the stream.
+        /// </summary>
+        /// <param name="name">The expected name of the token; or <c>null</c> to skip name comparison.</param>
+        public void ReadArrayStart( string name = null )
+        {
+            this.AssertCanRead();
+            this.AssertArrayStart(name);
+        }
+
+        /// <summary>
+        /// Reads an ObjectStart token from the stream.
+        /// </summary>
+        public void ReadEnd()
+        {
+            this.AssertCanRead();
+            this.AssertEnd();
+        }
+
+        /// <summary>
+        /// Reads a Value token from the stream, and returns it's string content.
+        /// </summary>
+        /// <param name="name">The expected name of the token; or <c>null</c> to skip name comparison.</param>
+        /// <returns>The string content of the Value token.</returns>
+        public string ReadValue( string name = null )
+        {
+            this.AssertCanRead();
+            return this.GetValue(name);
+        }
+
+        /// <summary>
+        /// Reads a Value token from the stream, and returns it's content.
+        /// </summary>
+        /// <typeparam name="T">The type to deserialize an instance of.</typeparam>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        /// <param name="converter">The converter to use to deserialize the string content; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
+        /// <returns>The content of the Value token.</returns>
+        public T ReadValue<T>( string name = null, IStringConverter<T> converter = null )
+        {
+            this.AssertCanRead();
+            return this.GetValue<T>(name, converter);
         }
 
         #endregion
