@@ -61,10 +61,6 @@ namespace Mechanical3.IO.FileSystems
                 persistentUserDocumentsPath = Path.Combine(persistentUserDocumentsPath, appName);
             }
             this.persistentUserDocumentsFullPath = Path.GetFullPath(persistentUserDocumentsPath);
-
-#if DEBUG
-            Log.Debug("Initializing common file system paths.", new Exception().Store(nameof(this.persistentAppDataFullPath), this.persistentAppDataFullPath).Store(nameof(this.temporaryAppDataFullPath), this.temporaryAppDataFullPath).Store(nameof(this.persistentUserDocumentsFullPath), this.persistentUserDocumentsFullPath));
-#endif
         }
 
         #endregion

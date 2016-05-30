@@ -104,23 +104,31 @@ namespace Mechanical3.DataStores
             return exception;
         }
 
-        private void AssertToken( DataStoreToken token, string name )
+        private void AssertName( string name )
         {
-            try
+            if( name.NotNullReference() )
             {
-                if( this.Token != token )
-                    throw new FormatException("Unexpected token found!").Store("expectedToken", token).Store("actualToken", this.Token);
+                //// there is something to compare to
 
-                if( name.NotNullReference()
-                 && !DataStore.NameComparer.Equals(name, this.Name) )
-                    throw new FormatException("Name mismatch!").Store("expectedName", name);
+                if( !this.parents.IsRoot
+                 && this.parents.DirectParent.IsObject )
+                {
+                    // this is a named token
+                    if( !DataStore.NameComparer.Equals(name, this.Name) )
+                        throw this.AddLineInfo(new FormatException("Name mismatch!").Store("expectedName", name).Store(nameof(this.Path), this.Path));
+                }
+                else
+                {
+                    // this is an unnamed token
+                    throw this.AddLineInfo(new FormatException("Token has no name!").Store("expectedName", name).Store(nameof(this.Path), this.Path));
+                }
             }
-            catch( Exception ex )
-            {
-                ex.Store(nameof(this.Path), this.Path); // contains the actual name
-                this.AddLineInfo(ex);
-                throw;
-            }
+        }
+
+        private void AssertToken( DataStoreToken token )
+        {
+            if( this.Token != token )
+                throw this.AddLineInfo(new FormatException("Unexpected token found!").Store("expectedToken", token).Store("actualToken", this.Token).Store(nameof(this.Path), this.Path));
         }
 
         #endregion
@@ -413,12 +421,16 @@ namespace Mechanical3.DataStores
 
         /// <summary>
         /// Tries to read the next token from the stream.
-        /// Throws an exception if that fails.
+        /// Verifies that the name matches what is expected.
+        /// Throws an exception if any of that fails.
         /// </summary>
-        public void AssertCanRead()
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        public void AssertCanRead( string name = null )
         {
             if( !this.Read() )
                 throw new FormatException("Unexpected end of stream!").StoreFileLine(); // no path information available here
+
+            this.AssertName(name);
         }
 
         /// <summary>
@@ -427,7 +439,8 @@ namespace Mechanical3.DataStores
         /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
         public void AssertObjectStart( string name = null )
         {
-            this.AssertToken(DataStoreToken.ObjectStart, name);
+            this.AssertToken(DataStoreToken.ObjectStart);
+            this.AssertName(name);
         }
 
         /// <summary>
@@ -436,7 +449,8 @@ namespace Mechanical3.DataStores
         /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
         public void AssertArrayStart( string name = null )
         {
-            this.AssertToken(DataStoreToken.ArrayStart, name);
+            this.AssertToken(DataStoreToken.ArrayStart);
+            this.AssertName(name);
         }
 
         /// <summary>
@@ -444,7 +458,7 @@ namespace Mechanical3.DataStores
         /// </summary>
         public void AssertEnd()
         {
-            this.AssertToken(DataStoreToken.End, name: null);
+            this.AssertToken(DataStoreToken.End);
         }
 
         /// <summary>
@@ -454,7 +468,8 @@ namespace Mechanical3.DataStores
         /// <returns>The string content of the Value token.</returns>
         public string GetValue( string name = null )
         {
-            this.AssertToken(DataStoreToken.Value, name);
+            this.AssertToken(DataStoreToken.Value);
+            this.AssertName(name);
             return this.Value;
         }
 
@@ -469,6 +484,17 @@ namespace Mechanical3.DataStores
         {
             string stringValue = this.GetValue(name);
             return DataStore.Parse(stringValue, converter ?? this.Converters.GetConverter<T>());
+        }
+
+        /// <summary>
+        /// Tests whether the reader is currently at a Value token with a <c>null</c> content.
+        /// </summary>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        public void AssertNull( string name = null )
+        {
+            string value = this.GetValue(name);
+            if( value.NotNullReference() )
+                throw this.AddLineInfo(new FormatException("Value content not null!").Store("actualValue", value));
         }
 
         /// <summary>
@@ -522,6 +548,16 @@ namespace Mechanical3.DataStores
         {
             this.AssertCanRead();
             return this.GetValue<T>(name, converter);
+        }
+
+        /// <summary>
+        /// Reads a Value token with a <c>null</c> content.
+        /// </summary>
+        /// <param name="name">The expected name of the current token; or <c>null</c> to skip name comparison.</param>
+        public void ReadNull( string name = null )
+        {
+            this.AssertCanRead();
+            this.AssertNull(name);
         }
 
         #endregion

@@ -88,6 +88,7 @@
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="Loggers\LogEntry.cs" />
     <Compile Include="Loggers\LogLevel.cs" />
+    <Compile Include="Loggers\DataStoreTextLogger.cs" />
     <Compile Include="Loggers\MemoryLogger.cs" />
     <Compile Include="Misc\ExceptionInfo.cs" />
     <Compile Include="Misc\FileLineInfo.cs" />
@@ -103,7 +104,9 @@
     <Compile Include="Misc\SynchronizationContextUIHandlerBase.cs" />
     <Compile Include="Misc\UIThreadAwaiter.cs" />
     <Compile Include="MVVM\BoolToObjectConverter.cs" />
+    <Compile Include="MVVM\DelegateCommand.cs" />
     <Compile Include="MVVM\NotConverter.cs" />
+    <Compile Include="MVVM\PropertyChangedActions.cs" />
     <Compile Include="MVVM\PropertyChangedBase.cs" />
     <Compile Include="MVVM\SimpleConverterBase.cs" />
     <Compile Include="MVVM\UI.cs" />
@@ -117,11 +120,6 @@
     <AdditionalFiles Include="stylecop.json" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
-    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
-    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="PresentationFramework">
       <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\PresentationFramework.dll</HintPath>
     </Reference>
@@ -129,6 +127,11 @@
       <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <PropertyGroup>

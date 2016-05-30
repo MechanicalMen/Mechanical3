@@ -240,7 +240,7 @@ namespace Mechanical3.DataStores.Json
                 }
                 else
                 {
-                    this.jsonWriter.WriteRawValue('"' + value + '"');
+                    this.jsonWriter.WriteRawValue(JsonConvert.ToString(value)); // adds double quotes, and escapes special characters (like backslash)
                 }
                 break;
 

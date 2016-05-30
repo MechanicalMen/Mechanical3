@@ -203,8 +203,8 @@ namespace Mechanical3.DataStores
         /// <summary>
         /// Writes a value token, along with it's content, without specifying a name for it.
         /// </summary>
-        /// <param name="value">The value content to write.</param>
         /// <typeparam name="T">The type whose instance <paramref name="value"/> was serialized from.</typeparam>
+        /// <param name="value">The value content to write.</param>
         public void WriteValue<T>( string value )
         {
             this.ThrowIfDisposed();
@@ -243,7 +243,19 @@ namespace Mechanical3.DataStores
         }
 
         /// <summary>
-        /// Writes a value.
+        /// Writes a value token, with an optional name, and a <c>null</c> content.
+        /// </summary>
+        /// <param name="name">The data store name to use; or <c>null</c> to skip naming the token.</param>
+        public void WriteNull( string name = null )
+        {
+            if( name.NotNullReference() )
+                this.WriteName(name);
+
+            this.WriteValue<object>((string)null);
+        }
+
+        /// <summary>
+        /// Writes a value token, along with it's content, without specifying a name for it.
         /// </summary>
         /// <typeparam name="T">The type to serialize an instance of.</typeparam>
         /// <param name="value">The value content to write.</param>
@@ -258,7 +270,19 @@ namespace Mechanical3.DataStores
         }
 
         /// <summary>
-        /// Writes a value.
+        /// Writes a value token, along with it's name and content.
+        /// </summary>
+        /// <typeparam name="T">The type whose instance <paramref name="value"/> was serialized from.</typeparam>
+        /// <param name="name">The data store name to use.</param>
+        /// <param name="value">The <see cref="string"/> content to write.</param>
+        public void WriteValue<T>( string name, string value )
+        {
+            this.WriteName(name);
+            this.WriteValue<T>(value);
+        }
+
+        /// <summary>
+        /// Writes a value token, along with it's name and content.
         /// </summary>
         /// <typeparam name="T">The type to serialize an instance of.</typeparam>
         /// <param name="name">The data store name to use.</param>
@@ -266,8 +290,11 @@ namespace Mechanical3.DataStores
         /// <param name="converter">The converter to use to serialize the <paramref name="value"/>; or <c>null</c> to get it from the <see cref="Converters"/> property.</param>
         public void WriteValue<T>( string name, T value, IStringConverter<T> converter = null )
         {
-            this.WriteName(name);
-            this.WriteValue<T>(value, converter);
+            if( converter.NullReference() )
+                converter = this.Converters.GetConverter<T>();
+
+            var stringValue = converter.ToString(value);
+            this.WriteValue<T>(name, stringValue);
         }
 
         #endregion

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using Mechanical3.Core;
+using Mechanical3.DataStores;
 
 namespace Mechanical3.Misc
 {
@@ -224,6 +226,95 @@ namespace Mechanical3.Misc
             var sb = new StringBuilder();
             Append(sb, this, indentation: string.Empty);
             return sb.ToString();
+        }
+
+        #endregion
+
+        #region Serialization
+
+        private static class Keys
+        {
+            internal const string Type = "Type";
+            internal const string Message = "Message";
+            internal const string StackTrace = "StackTrace";
+            internal const string Data = "Data";
+            internal const string InnerExceptions = "InnerExceptions";
+        }
+
+        /// <summary>
+        /// Saves the specified instance.
+        /// </summary>
+        /// <param name="info">The instance to save. May be <c>null</c>.</param>
+        /// <param name="writer">The <see cref="DataStoreTextWriter"/> to use.</param>
+        public static void Save( ExceptionInfo info, DataStoreTextWriter writer )
+        {
+            if( writer.NullReference() )
+                throw new ArgumentNullException(nameof(writer)).StoreFileLine();
+
+            if( info.NullReference() )
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            writer.WriteValue(Keys.Type, info.Type);
+            writer.WriteValue(Keys.Message, info.Message);
+            writer.WriteValue(Keys.StackTrace, info.StackTrace?.ToString()); // may be null
+
+            writer.WriteArrayStart(Keys.Data);
+            foreach( var data in info.Data )
+                data.Save(writer);
+            writer.WriteEnd();
+
+            writer.WriteArrayStart(Keys.InnerExceptions);
+            foreach( var inner in info.InnerExceptions )
+                Save(inner, writer);
+            writer.WriteEnd();
+
+            writer.WriteEnd();
+        }
+
+        /// <summary>
+        /// Loads the specified instance.
+        /// </summary>
+        /// <param name="reader">The <see cref="DataStoreTextReader"/> to use.</param>
+        /// <returns>The instance loaded. May be <c>null</c>.</returns>
+        public static ExceptionInfo LoadFrom( DataStoreTextReader reader )
+        {
+            if( reader.NullReference() )
+                throw new ArgumentNullException(nameof(reader)).StoreFileLine();
+
+            if( reader.Token == DataStoreToken.Value )
+            {
+                reader.AssertNull();
+                return null;
+            }
+            else
+            {
+                reader.AssertObjectStart();
+
+                var type = reader.ReadValue<string>(Keys.Type);
+                var message = reader.ReadValue<string>(Keys.Message);
+                var stackTrace = StackTraceInfo.From(reader.ReadValue<string>(Keys.StackTrace)); // the value read may be null, but this will work as expected
+
+                reader.ReadArrayStart(Keys.Data);
+                reader.AssertCanRead();
+                var data = new List<StringState>();
+                while( reader.Token != DataStoreToken.End )
+                    data.Add(StringState.LoadFrom(reader));
+                reader.AssertEnd();
+
+                reader.ReadArrayStart(Keys.InnerExceptions);
+                reader.AssertCanRead();
+                var inner = new List<ExceptionInfo>();
+                while( reader.Token != DataStoreToken.End )
+                    inner.Add(LoadFrom(reader));
+                reader.AssertEnd();
+
+                reader.ReadEnd();
+                return new ExceptionInfo(type, message, stackTrace, data.ToArray(), inner.ToArray());
+            }
         }
 
         #endregion

@@ -284,15 +284,15 @@ namespace Mechanical3.DataStores.Json
             case JsonToken.Integer:
                 token = DataStoreToken.Value;
                 name = null;
-                value = ((IFormattable)this.jsonReader.Value).ToString("D", CultureInfo.InvariantCulture);
+                value = SafeString.Print(this.jsonReader.Value, "D", CultureInfo.InvariantCulture);
                 break;
             case JsonToken.Float:
                 token = DataStoreToken.Value;
                 name = null;
-                if( this.jsonReader.ValueType != typeof(decimal) )
-                    value = ((IFormattable)this.jsonReader.Value).ToString("R", CultureInfo.InvariantCulture); // float or double
-                else
-                    value = ((IFormattable)this.jsonReader.Value).ToString("G", CultureInfo.InvariantCulture); // decimal
+                value = SafeString.Print(
+                    this.jsonReader.Value,
+                    this.jsonReader.ValueType != typeof(decimal) ? "R" : "G", // float or double, vs. decimal
+                    CultureInfo.InvariantCulture);
                 break;
 
             default:

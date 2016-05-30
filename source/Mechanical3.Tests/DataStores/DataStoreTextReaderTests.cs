@@ -108,114 +108,183 @@ namespace Mechanical3.Tests.DataStores
 
         #region Extended member tests
 
+        private enum NameMatch
+        {
+            HasName_Matches,  // token has name, member has same name
+            HasName_Ignored,  // token has name, members has null
+            HasName_BadMatch, // token has name, member has different name
+            NoName_Ignored,   // token has no name, member has null
+            NoName_BadMatch   // token has no name, member has a name
+        }
+
+        private static void TestMember( Action<DataStoreTextReader, string> memberAction, DataStoreToken token, NameMatch nameMatch, bool expectException, string value = null )
+        {
+            bool hasName;
+            switch( nameMatch )
+            {
+            case NameMatch.HasName_Matches:
+            case NameMatch.HasName_Ignored:
+            case NameMatch.HasName_BadMatch:
+                hasName = true;
+                break;
+            case NameMatch.NoName_Ignored:
+            case NameMatch.NoName_BadMatch:
+                hasName = false;
+                break;
+            default:
+                throw new ArgumentException().StoreFileLine();
+            }
+
+            string name = hasName ? "a" : null;
+            var tokens = new TestData.FileFormatReaderOutput[] {
+                TestData.FileFormatReaderOutput.StartOrEnd(hasName ? DataStoreToken.ObjectStart : DataStoreToken.ArrayStart),
+                TestData.FileFormatReaderOutput.True(token, name, value),
+                TestData.FileFormatReaderOutput.StartOrEnd(DataStoreToken.End)
+            }.ToList();
+            bool extraStartToken = token == DataStoreToken.End;
+            if( extraStartToken )
+                tokens.Insert(1, TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, name));
+            bool extraEndToken = token == DataStoreToken.ObjectStart || token == DataStoreToken.ArrayStart;
+            if( extraEndToken )
+                tokens.Insert(2, TestData.FileFormatReaderOutput.True(DataStoreToken.End, name));
+
+            using( var reader = CreateOutputReader(tokens.ToArray()) )
+            {
+                reader.Read();
+
+                if( extraStartToken )
+                    reader.Read();
+
+                switch( nameMatch )
+                {
+                case NameMatch.HasName_Ignored:
+                case NameMatch.NoName_Ignored:
+                    name = null;
+                    break;
+                case NameMatch.HasName_BadMatch:
+                case NameMatch.NoName_BadMatch:
+                    name = "b";
+                    break;
+                default:
+                    break;
+                }
+
+                if( expectException )
+                    Assert.Throws<FormatException>(() => memberAction(reader, name));
+                else
+                    memberAction(reader, name);
+
+                if( extraEndToken )
+                    reader.Read();
+
+                reader.Read(); // end of stream
+                Assert.Throws<FormatException>(() => memberAction(reader, name)); // members should not be accessible after the stream has ended
+            }
+        }
+
         [Test]
         public static void ExtendedTextReaderMemberTests()
         {
+            Action<DataStoreTextReader, string> member;
+
             // AssertCanRead
-            using( var reader = CreateOutputReader(
-                TestData.FileFormatReaderOutput.StartOrEnd(DataStoreToken.ArrayStart),
-                TestData.FileFormatReaderOutput.StartOrEnd(DataStoreToken.End)) )
-            {
-                reader.Read();
-                reader.AssertCanRead();
-                Assert.Throws<FormatException>(() => reader.AssertCanRead());
-            }
+            member = ( reader, name ) => reader.AssertCanRead(name);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: false);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.NoName_BadMatch, expectException: true);
 
 
             // ReadObjectStart, implicitly AssertObjectStart
-            using( var reader = CreateOutputReader(
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "b"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End)) )
-            {
-                reader.ReadObjectStart(); // no name
-                reader.ReadObjectStart(); // ignores name
-                reader.ReadObjectStart("a"); // matches name
-                Assert.Throws<FormatException>(() => reader.ReadObjectStart()); // token mismatch
-                Assert.Throws<FormatException>(() => reader.ReadObjectStart("X")); // name mismatch
-                reader.Read();
-                reader.Read();
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadObjectStart()); // end of stream
-            }
+            member = ( reader, name ) => reader.ReadObjectStart(name);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Matches, expectException: false);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true);
 
 
             // ReadArrayStart, implicitly AssertArrayStart
-            using( var reader = CreateOutputReader(
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart, "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart, "b"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart, "c"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End)) )
-            {
-                reader.Read();
-                reader.ReadArrayStart("a"); // matches name
-                reader.ReadArrayStart(); // no name
-                reader.Read();
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadArrayStart("X")); // name mismatch
-                Assert.Throws<FormatException>(() => reader.ReadArrayStart()); // token mismatch
-                reader.ReadArrayStart(); // ignores name
-                reader.Read();
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadArrayStart()); // end of stream
-            }
+            member = ( reader, name ) => reader.ReadArrayStart(name);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Matches, expectException: false);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.NoName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.NoName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true);
 
 
             // ReadEnd, implicitly AssertEnd
-            using( var reader = CreateOutputReader(
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart, "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart, "b"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End)) )
-            {
-                reader.Read();
-                reader.Read();
-                reader.ReadEnd(); // ignores name
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadEnd()); // token mismatch
-                reader.ReadEnd(); // no name
-                reader.Read();
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadEnd()); // end of stream
-            }
+            member = ( reader, name ) => reader.ReadEnd(); // name ignored
+            TestMember(member, DataStoreToken.End, NameMatch.HasName_Matches, expectException: false);
+            TestMember(member, DataStoreToken.End, NameMatch.HasName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.End, NameMatch.HasName_BadMatch, expectException: false);
+            TestMember(member, DataStoreToken.End, NameMatch.NoName_Ignored, expectException: false);
+            TestMember(member, DataStoreToken.End, NameMatch.NoName_BadMatch, expectException: false);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: true);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true);
 
 
             // ReadValue, implicitly GetValue
-            using( var reader = CreateOutputReader(
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ObjectStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "a", "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "b", "b"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, "c", "c"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.ArrayStart),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.Value, null, "a"),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End),
-                TestData.FileFormatReaderOutput.True(DataStoreToken.End)) )
-            {
-                reader.Read();
-                Test.OrdinalEquals("a", reader.ReadValue("a")); // matches name
-                Test.OrdinalEquals("b", reader.ReadValue<string>()); // ignores name
-                Assert.Throws<FormatException>(() => reader.ReadValue("X")); // name mismatch
-                Assert.Throws<FormatException>(() => reader.ReadValue()); // token mismatch
-                Test.OrdinalEquals("a", reader.ReadValue()); // no name
-                reader.Read();
-                reader.Read();
-                Assert.Throws<FormatException>(() => reader.ReadValue()); // end of stream
-            }
+            member = ( reader, name ) => Test.OrdinalEquals(null, reader.ReadValue(name));
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Matches, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Ignored, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_BadMatch, expectException: true, value: null);
+            member = ( reader, name ) => { if( !string.Equals("a", reader.ReadValue(name), StringComparison.Ordinal) ) throw new FormatException("Value does not match!"); };
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Matches, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_BadMatch, expectException: true, value: "b");
+
+
+            // ReadNull, implicitly AssertNull
+            member = ( reader, name ) => reader.ReadNull(name);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: false, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Matches, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Ignored, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: true, value: null);
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_BadMatch, expectException: true, value: null);
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Matches, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.HasName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.Value, NameMatch.NoName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_Matches, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ArrayStart, NameMatch.HasName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.HasName_BadMatch, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_Ignored, expectException: true, value: "b");
+            TestMember(member, DataStoreToken.ObjectStart, NameMatch.NoName_BadMatch, expectException: true, value: "b");
         }
 
         #endregion

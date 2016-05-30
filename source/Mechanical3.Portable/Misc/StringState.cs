@@ -1,10 +1,9 @@
 ﻿using System;
 using Mechanical3.Core;
+using Mechanical3.DataStores;
 
 namespace Mechanical3.Misc
 {
-    //// NOTE: we want to avoid using exception extensions here
-
     /// <summary>
     /// Records the string representation of a value.
     /// </summary>
@@ -106,6 +105,55 @@ namespace Mechanical3.Misc
         public override string ToString()
         {
             return $"{this.Name}={this.DisplayValue}";
+        }
+
+        #endregion
+
+        #region Serialization
+
+        private static class Keys
+        {
+            internal const string Name = "Name";
+            internal const string Value = "Value";
+            internal const string ValueType = "ValueType";
+        }
+
+        /// <summary>
+        /// Saves the specified instance.
+        /// </summary>
+        /// <param name="writer">The <see cref="DataStoreTextWriter"/> to use.</param>
+        public void Save( DataStoreTextWriter writer )
+        {
+            if( writer.NullReference() )
+                throw new ArgumentNullException(nameof(writer)).StoreFileLine();
+
+            if( this.Name.NullReference() )
+                throw new ArgumentException().StoreFileLine(); // default ctor. creates invalid instances
+
+            writer.WriteObjectStart();
+            writer.WriteValue(Keys.Name, this.Name);
+            writer.WriteValue(Keys.Value, this.Value);
+            writer.WriteValue(Keys.ValueType, this.ValueType);
+            writer.WriteEnd();
+        }
+
+        /// <summary>
+        /// Loads the specified instance.
+        /// </summary>
+        /// <param name="reader">The <see cref="DataStoreTextReader"/> to use.</param>
+        /// <returns>The instance loaded. May be <c>null</c>.</returns>
+        public static StringState LoadFrom( DataStoreTextReader reader )
+        {
+            if( reader.NullReference() )
+                throw new ArgumentNullException(nameof(reader)).StoreFileLine();
+
+            reader.AssertObjectStart();
+            var name = reader.ReadValue<string>(Keys.Name);
+            var value = reader.ReadValue<string>(Keys.Value);
+            var valueType = reader.ReadValue<string>(Keys.ValueType);
+            reader.ReadEnd();
+
+            return new StringState(name, value, valueType);
         }
 
         #endregion

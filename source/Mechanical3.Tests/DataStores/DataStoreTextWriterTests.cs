@@ -19,17 +19,17 @@ namespace Mechanical3.Tests.DataStores
 
                 writer.WriteValue("value_not_empty", "a");
                 writer.WriteValue("value_empty", string.Empty);
-                writer.WriteValue("value_null", (string)null);
+                writer.WriteNull("value_null");
                 writer.WriteObjectStart("object_not_empty");
-                writer.WriteValue("a", "b");
+                writer.WriteValue("a", "b", converter: null); // converter overload test
                 writer.WriteEnd();
                 writer.WriteObjectStart("object_empty");
                 writer.WriteEnd();
 
                 writer.WriteArrayStart("as_array");
                 writer.WriteValue("a");
-                writer.WriteValue(string.Empty);
-                writer.WriteValue((string)null);
+                writer.WriteValue(string.Empty, converter: null); // converter overload test
+                writer.WriteNull();
                 writer.WriteObjectStart();
                 writer.WriteValue("a", "b");
                 writer.WriteEnd();

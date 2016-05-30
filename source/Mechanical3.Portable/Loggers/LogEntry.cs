@@ -1,5 +1,6 @@
 ﻿using System;
 using Mechanical3.Core;
+using Mechanical3.DataStores;
 using Mechanical3.Misc;
 
 namespace Mechanical3.Loggers
@@ -99,6 +100,77 @@ namespace Mechanical3.Loggers
         public FileLineInfo SourcePos
         {
             get { return this.sourcePos; }
+        }
+
+        #endregion
+
+        #region Serialization
+
+        private static class Keys
+        {
+            internal const string Timestamp = "Timestamp";
+            internal const string Level = "Level";
+            internal const string Message = "Message";
+            internal const string Exception = "Exception";
+            internal const string Source = "Source";
+        }
+
+        /// <summary>
+        /// Saves the specified instance.
+        /// </summary>
+        /// <param name="entry">The instance to save. May be <c>null</c>.</param>
+        /// <param name="writer">The <see cref="DataStoreTextWriter"/> to use.</param>
+        public static void Save( LogEntry entry, DataStoreTextWriter writer )
+        {
+            if( writer.NullReference() )
+                throw new ArgumentNullException(nameof(writer)).StoreFileLine();
+
+            if( entry.NullReference() )
+            {
+                writer.WriteNull();
+                return;
+            }
+
+            writer.WriteObjectStart();
+            writer.WriteValue(Keys.Timestamp, entry.Timestamp);
+            writer.WriteValue(Keys.Level, entry.Level.ToString());
+            writer.WriteValue(Keys.Message, entry.Message);
+
+            writer.WriteName(Keys.Exception);
+            ExceptionInfo.Save(entry.exception, writer);
+
+            writer.WriteValue(Keys.Source, entry.SourcePos.ToString());
+            writer.WriteEnd();
+        }
+
+        /// <summary>
+        /// Loads the specified instance.
+        /// </summary>
+        /// <param name="reader">The <see cref="DataStoreTextReader"/> to use.</param>
+        /// <returns>The instance loaded. May be <c>null</c>.</returns>
+        public static LogEntry LoadFrom( DataStoreTextReader reader )
+        {
+            if( reader.NullReference() )
+                throw new ArgumentNullException(nameof(reader)).StoreFileLine();
+
+            if( reader.Token == DataStoreToken.Value )
+            {
+                reader.AssertNull();
+                return null;
+            }
+            else
+            {
+                reader.AssertObjectStart();
+                var timestamp = reader.ReadValue<DateTime>(Keys.Timestamp);
+                var level = (LogLevel)Enum.Parse(typeof(LogLevel), reader.ReadValue<string>(Keys.Level));
+                var message = reader.ReadValue<string>(Keys.Message);
+
+                reader.AssertCanRead(Keys.Exception);
+                var exception = ExceptionInfo.LoadFrom(reader);
+
+                var srcPos = StackTraceInfo.From(reader.ReadValue<string>(Keys.Source)).Frames[0];
+                return new LogEntry(timestamp, level, message, exception, srcPos);
+            }
         }
 
         #endregion
