@@ -157,7 +157,7 @@ namespace Mechanical3.Misc
         public void Add( StringState state )
         {
             if( state.Name.NullReference() )
-                throw new ArgumentNullException(nameof(state)).StoreFileLine();
+                throw NamedArgumentException.FromParameter(nameof(state)).StoreFileLine();
 
             // we do not allow overwriting of earlier data
             string name = state.Name;
@@ -185,11 +185,11 @@ namespace Mechanical3.Misc
         /// Gets the (accumulated) partial stack trace.
         /// </summary>
         /// <returns>The (accumulated) partial stack trace found.</returns>
-        public StackTraceInfo GetPartialStackTrace()
+        public string GetPartialStackTrace()
         {
             StringState state;
             if( this.TryGetState(PartialStackTrace, out state) )
-                return StackTraceInfo.From(state.Value);
+                return state.Value;
             else
                 return null;
         }
@@ -206,7 +206,8 @@ namespace Mechanical3.Misc
             if( this.TryGetState(PartialStackTrace, out state) )
             {
                 var sb = new StringBuilder(state.Value);
-                StackTraceInfo.AppendStackFrame(sb, sourcePos);
+                sb.Append("\r\n");
+                sourcePos.ToString(sb);
                 newValue = sb.ToString();
             }
             else
@@ -215,10 +216,9 @@ namespace Mechanical3.Misc
             }
 
             // update stored value
-            state = new StringState(
+            state = StringState.From(
                 name: PartialStackTrace,
-                value: newValue,
-                valueType: Mechanical3.Core.SafeString.DebugPrint(typeof(StackTraceInfo)));
+                value: newValue);
             this.AddOrSet(state);
         }
 

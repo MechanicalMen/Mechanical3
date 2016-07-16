@@ -119,10 +119,10 @@ namespace Mechanical3.Misc
         }
 
         /// <summary>
-        /// Saves the specified instance.
+        /// Saves the current instance to the specified <see cref="DataStoreTextWriter"/>.
         /// </summary>
         /// <param name="writer">The <see cref="DataStoreTextWriter"/> to use.</param>
-        public void Save( DataStoreTextWriter writer )
+        public void SaveTo( DataStoreTextWriter writer )
         {
             if( writer.NullReference() )
                 throw new ArgumentNullException(nameof(writer)).StoreFileLine();
@@ -138,10 +138,10 @@ namespace Mechanical3.Misc
         }
 
         /// <summary>
-        /// Loads the specified instance.
+        /// Loads a serialized instance from the specified <see cref="DataStoreTextReader"/>.
         /// </summary>
         /// <param name="reader">The <see cref="DataStoreTextReader"/> to use.</param>
-        /// <returns>The instance loaded. May be <c>null</c>.</returns>
+        /// <returns>The instance restored.</returns>
         public static StringState LoadFrom( DataStoreTextReader reader )
         {
             if( reader.NullReference() )

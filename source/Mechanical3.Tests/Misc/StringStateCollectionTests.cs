@@ -8,7 +8,7 @@ namespace Mechanical3.Tests.Misc
     [TestFixture(Category = "Misc")]
     public static class StringStateCollectionTests
     {
-        private static bool Equals( StringState s1, StringState s2 )
+        internal static bool Equals( StringState s1, StringState s2 )
         {
             return string.Equals(s1.Name, s2.Name, StringComparison.Ordinal)
                 && string.Equals(s1.Value, s2.Value, StringComparison.Ordinal)
@@ -44,6 +44,8 @@ namespace Mechanical3.Tests.Misc
 
             var collection = new StringStateCollection();
             Assert.True(Equals(new StringState[0], collection.ToArray()));
+
+            Assert.Throws<ArgumentException>(() => collection.Add(default(StringState)));
 
             collection.Add(state1);
             Assert.True(collection.ContainsKey(state1.Name));
@@ -83,22 +85,26 @@ namespace Mechanical3.Tests.Misc
 
             var collection = new StringStateCollection();
             Assert.False(collection.HasPartialStackTrace);
+            Assert.Null(collection.GetPartialStackTrace());
 
             // adding random things does not add a partial stack trace
             collection.Add(state);
             Assert.False(collection.HasPartialStackTrace);
+            Assert.Null(collection.GetPartialStackTrace());
 
             var info1 = new FileLineInfo("Test.cs", "Test", 1);
             collection.AddPartialStackTrace(info1);
             Assert.True(collection.HasPartialStackTrace);
             Assert.True(collection.ContainsKey("PartialStackTrace"));
-            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString(), "Mechanical3.Misc.StackTraceInfo") }, collection.ToArray()));
+            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString(), "string") }, collection.ToArray()));
+            Test.OrdinalEquals(collection.GetPartialStackTrace(), info1.ToString());
 
             var info2 = new FileLineInfo("Test2.cs", "Test2", 2);
             collection.AddPartialStackTrace(info2);
             Assert.True(collection.HasPartialStackTrace);
             Assert.True(collection.ContainsKey("PartialStackTrace"));
-            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString() + "\r\n" + info2.ToString(), "Mechanical3.Misc.StackTraceInfo") }, collection.ToArray()));
+            Assert.True(Equals(new StringState[] { state, new StringState("PartialStackTrace", info1.ToString() + "\r\n" + info2.ToString(), "string") }, collection.ToArray()));
+            Test.OrdinalEquals(collection.GetPartialStackTrace(), info1.ToString() + "\r\n" + info2.ToString());
         }
     }
 }

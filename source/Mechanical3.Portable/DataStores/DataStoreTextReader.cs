@@ -115,12 +115,12 @@ namespace Mechanical3.DataStores
                 {
                     // this is a named token
                     if( !DataStore.NameComparer.Equals(name, this.Name) )
-                        throw this.AddLineInfo(new FormatException("Name mismatch!").Store("expectedName", name).Store(nameof(this.Path), this.Path));
+                        throw this.AddLineInfo(new FormatException("Name mismatch!").Store("expectedName", name).Store(nameof(this.Path), this.PathOrNull));
                 }
                 else
                 {
                     // this is an unnamed token
-                    throw this.AddLineInfo(new FormatException("Token has no name!").Store("expectedName", name).Store(nameof(this.Path), this.Path));
+                    throw this.AddLineInfo(new FormatException("Token has no name!").Store("expectedName", name).Store(nameof(this.Path), this.PathOrNull));
                 }
             }
         }
@@ -128,7 +128,18 @@ namespace Mechanical3.DataStores
         private void AssertToken( DataStoreToken token )
         {
             if( this.Token != token )
-                throw this.AddLineInfo(new FormatException("Unexpected token found!").Store("expectedToken", token).Store("actualToken", this.Token).Store(nameof(this.Path), this.Path));
+                throw this.AddLineInfo(new FormatException("Unexpected token found!").Store("expectedToken", token).Store("actualToken", this.Token).Store(nameof(this.Path), this.PathOrNull));
+        }
+
+        private FilePath PathOrNull
+        {
+            get
+            {
+                if( this.parents.IsRoot )
+                    return null;
+                else
+                    return this.Path;
+            }
         }
 
         #endregion

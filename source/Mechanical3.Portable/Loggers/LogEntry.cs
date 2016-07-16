@@ -112,7 +112,9 @@ namespace Mechanical3.Loggers
             internal const string Level = "Level";
             internal const string Message = "Message";
             internal const string Exception = "Exception";
-            internal const string Source = "Source";
+            internal const string File = "File";
+            internal const string Member = "Member";
+            internal const string Line = "Line";
         }
 
         /// <summary>
@@ -139,7 +141,9 @@ namespace Mechanical3.Loggers
             writer.WriteName(Keys.Exception);
             ExceptionInfo.Save(entry.exception, writer);
 
-            writer.WriteValue(Keys.Source, entry.SourcePos.ToString());
+            writer.WriteValue(Keys.File, entry.SourcePos.File);
+            writer.WriteValue(Keys.Member, entry.SourcePos.Member);
+            writer.WriteValue(Keys.Line, entry.SourcePos.Line);
             writer.WriteEnd();
         }
 
@@ -168,8 +172,10 @@ namespace Mechanical3.Loggers
                 reader.AssertCanRead(Keys.Exception);
                 var exception = ExceptionInfo.LoadFrom(reader);
 
-                var srcPos = StackTraceInfo.From(reader.ReadValue<string>(Keys.Source)).Frames[0];
-                return new LogEntry(timestamp, level, message, exception, srcPos);
+                var file = reader.ReadValue<string>(Keys.File);
+                var member = reader.ReadValue<string>(Keys.Member);
+                var line = reader.ReadValue<int>(Keys.Line);
+                return new LogEntry(timestamp, level, message, exception, new FileLineInfo(file, member, line));
             }
         }
 

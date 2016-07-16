@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mechanical3.Core;
@@ -11,6 +12,16 @@ namespace Mechanical3.Misc
     /// </summary>
     public struct FileLineInfo
     {
+        //// NOTE: Unfortunately parsing stack frames is very hard, since they are localized, e.g.:
+        ////        - english: "  at <member> in <file>:line <line>"
+        ////        - hungarian: "  a következő helyen: <member> hely: <file>, sor: <line>"
+        ////
+        ////       The situation is made worse by some of the strangeness turning up in Xamarin stack traces:
+        ////       "  at (wrapper remoting-invoke-with-check) System.Net.NetworkInformation.Ping:Send (string,int)"
+        ////
+        ////       Using System.Diagnostics.StackTrace and StackFrame would be nice, but as of the time of writing this
+        ////       neither the portable libraries, nor the .NET Platform Standard seem to support them.
+
         #region Constructors
 
         //// NOTE: Unfortunately the default constructor takes precedence over other applicable constructors,
@@ -79,6 +90,29 @@ namespace Mechanical3.Misc
         #region Public Methods
 
         /// <summary>
+        /// Appends the string representation of this instance to the specified <see cref="StringBuilder"/>.
+        /// </summary>
+        /// <param name="sb">The <see cref="StringBuilder"/> to append to.</param>
+        public void ToString( StringBuilder sb )
+        {
+            if( sb.NullReference() )
+                throw new ArgumentNullException(nameof(sb)).StoreFileLine();
+
+            sb.Append("  at ");
+            sb.Append(this.Member);
+            if( this.File.NotNullReference() )
+            {
+                sb.Append(" in ");
+                sb.Append(this.File);
+                if( this.Line.HasValue )
+                {
+                    sb.Append(":line ");
+                    sb.Append(this.Line.Value.ToString("D", CultureInfo.InvariantCulture));
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns a stack frame string that represents this instance.
         /// </summary>
         /// <returns>A stack frame string that represents this instance.</returns>
@@ -86,7 +120,7 @@ namespace Mechanical3.Misc
         {
             const int InitialCapacity = 32 + 64 + 64; // 64 characters for file and member names, 32 for everything else
             var sb = new StringBuilder(InitialCapacity);
-            StackTraceInfo.AppendStackFrame(sb, this);
+            this.ToString(sb);
             return sb.ToString();
         }
 

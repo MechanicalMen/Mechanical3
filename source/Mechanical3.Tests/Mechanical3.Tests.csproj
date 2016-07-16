@@ -69,6 +69,7 @@
     <Compile Include="Core\LogTests.cs" />
     <Compile Include="Core\CoreExtensionTests.cs" />
     <Compile Include="Core\SafeStringTests.cs" />
+    <Compile Include="Core\NamedArgumentExceptionTests.cs" />
     <Compile Include="Core\StringPatternTests.cs" />
     <Compile Include="DataStores\DataStoreTests.cs" />
     <Compile Include="DataStores\DataStoreTextReaderTests.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="Misc\LocalizedStringComparerTests.cs" />
     <Compile Include="Misc\FileLineInfoTests.cs" />
     <Compile Include="Misc\MechanicalVersionTests.cs" />
-    <Compile Include="Misc\StackTraceInfoTests.cs" />
     <Compile Include="Misc\StringFormatterTests.cs" />
     <Compile Include="Misc\StringStateCollectionTests.cs" />
     <Compile Include="Misc\StringStateTests.cs" />

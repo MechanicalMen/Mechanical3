@@ -44,6 +44,7 @@
     <Compile Include="Core\DisposableObject.cs" />
     <Compile Include="Core\Log.cs" />
     <Compile Include="Core\MechanicalApp.cs" />
+    <Compile Include="Core\NamedArgumentException.cs" />
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="DataStores\DataStore.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="Misc\MechanicalVersion.cs" />
     <Compile Include="DataStores\StringConverterCollection.cs" />
     <Compile Include="Misc\NonUIThreadAwaiter.cs" />
-    <Compile Include="Misc\StackTraceInfo.cs" />
     <Compile Include="Misc\StringFormatter.cs" />
     <Compile Include="Misc\StringState.cs" />
     <Compile Include="Misc\StringStateCollection.cs" />

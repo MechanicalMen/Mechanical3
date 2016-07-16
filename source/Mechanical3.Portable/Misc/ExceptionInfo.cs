@@ -20,7 +20,7 @@ namespace Mechanical3.Misc
 
         private readonly string type;
         private readonly string message;
-        private readonly StackTraceInfo stackTrace;
+        private readonly string stackTrace;
         private readonly StringState[] data;
         private readonly ExceptionInfo[] innerExceptions;
 
@@ -31,13 +31,13 @@ namespace Mechanical3.Misc
         private ExceptionInfo(
             string type,
             string message,
-            StackTraceInfo stackTrace,
+            string stackTrace,
             StringState[] data,
             ExceptionInfo[] innerExceptions )
         {
             this.type = type ?? string.Empty;
             this.message = message ?? string.Empty;
-            this.stackTrace = stackTrace;
+            this.stackTrace = stackTrace ?? string.Empty;
             this.data = data.NotNullReference() && data.Length > 0 ? data : null;
             this.innerExceptions = innerExceptions.NotNullReference() && innerExceptions.Length > 0 ? innerExceptions : null;
         }
@@ -50,7 +50,7 @@ namespace Mechanical3.Misc
             : this(
                   type: SafeString.DebugPrint(exception.GetType()),
                   message: exception.Message,
-                  stackTrace: StackTraceInfo.From(exception.StackTrace),
+                  stackTrace: exception.StackTrace,
                   data: exception.GetStoredData().ToArray(),
                   innerExceptions: GetInnerExceptions(exception))
         {
@@ -93,7 +93,7 @@ namespace Mechanical3.Misc
         /// Gets the exception's stack trace.
         /// </summary>
         /// <value>The exception's stack trace.</value>
-        public StackTraceInfo StackTrace
+        public string StackTrace
         {
             get { return this.stackTrace; }
         }
@@ -174,12 +174,12 @@ namespace Mechanical3.Misc
                     sb.Append(SingleIndentation);
                     sb.Append(state.Name);
                     sb.Append(" = ");
-                    sb.Append(state.Value);
+                    sb.Append(state.DisplayValue);
                     //// no newline here
                 }
             }
 
-            if( info.StackTrace.NotNullReference() ) // this can actually happen
+            if( !info.StackTrace.NullOrEmpty() ) // this can actually happen
             {
                 sb.AppendLine();
                 sb.Append(indentation);
@@ -260,11 +260,11 @@ namespace Mechanical3.Misc
             writer.WriteObjectStart();
             writer.WriteValue(Keys.Type, info.Type);
             writer.WriteValue(Keys.Message, info.Message);
-            writer.WriteValue(Keys.StackTrace, info.StackTrace?.ToString()); // may be null
+            writer.WriteValue(Keys.StackTrace, info.StackTrace); // may be null
 
             writer.WriteArrayStart(Keys.Data);
             foreach( var data in info.Data )
-                data.Save(writer);
+                data.SaveTo(writer);
             writer.WriteEnd();
 
             writer.WriteArrayStart(Keys.InnerExceptions);
@@ -296,19 +296,17 @@ namespace Mechanical3.Misc
 
                 var type = reader.ReadValue<string>(Keys.Type);
                 var message = reader.ReadValue<string>(Keys.Message);
-                var stackTrace = StackTraceInfo.From(reader.ReadValue<string>(Keys.StackTrace)); // the value read may be null, but this will work as expected
+                var stackTrace = reader.ReadValue<string>(Keys.StackTrace);
 
                 reader.ReadArrayStart(Keys.Data);
-                reader.AssertCanRead();
                 var data = new List<StringState>();
-                while( reader.Token != DataStoreToken.End )
+                while( reader.Read() && reader.Token != DataStoreToken.End )
                     data.Add(StringState.LoadFrom(reader));
                 reader.AssertEnd();
 
                 reader.ReadArrayStart(Keys.InnerExceptions);
-                reader.AssertCanRead();
                 var inner = new List<ExceptionInfo>();
-                while( reader.Token != DataStoreToken.End )
+                while( reader.Read() && reader.Token != DataStoreToken.End )
                     inner.Add(LoadFrom(reader));
                 reader.AssertEnd();
 
