@@ -507,7 +507,6 @@ namespace Mechanical3.Core
     }
 }
 
-//// TODO: Substring debug printing
 //// TODO: Exception debug printing
 //// TODO: ExceptionInfo debug printing
 //// TODO: Enum<>, enum debug printing
