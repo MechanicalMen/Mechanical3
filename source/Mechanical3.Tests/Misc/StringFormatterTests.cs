@@ -191,7 +191,9 @@ namespace Mechanical3.Tests.Misc
             string exceptionString = @"Type: Exception
 Message: test message
 Data:
-  testValue = 3"; // Exception.ToString has no "Data" part
+  testValue = 3
+PartialStackTrace:
+  at DebugFormatterTests in StringFormatterTests.cs:line 190"; // Exception.ToString has no "Data" part
             Test.OrdinalEquals(exceptionString, ToString(formatter, exception));
             Test.OrdinalEquals(exceptionString, ToString(formatter, new ExceptionInfo(exception)));
 

@@ -146,10 +146,10 @@ namespace Mechanical3.Core
 
             public void Handle( UnhandledExceptionEvent evnt )
             {
-                var srcPos = evnt.EnqueueSource.HasValue ? evnt.EnqueueSource.Value : FileLineInfo.Create();
+                var srcPos = evnt.EnqueueSource.HasValue ? evnt.EnqueueSource.Value : FileLineInfo.Current();
                 try
                 {
-                    Log.Error("Unhandled exception caught!", evnt.Exception, srcPos.File, srcPos.Member, srcPos.Line ?? 0);
+                    Log.Error("Unhandled exception caught!", evnt.Exception, srcPos.File, srcPos.Member, srcPos.Line);
                 }
                 catch( Exception e )
                 {

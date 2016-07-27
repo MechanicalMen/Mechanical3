@@ -28,12 +28,16 @@ namespace Mechanical3.Misc
     /// </summary>
     public class StringStateCollection : EnumerableBase<StringState>
     {
+        /// <summary>
+        /// The string identifying the partial stack trace entry.
+        /// </summary>
+        internal const string PartialStackTraceKey = "PartialStackTrace";
+
         #region Private Fields
 
         private const string StateValuePostfix = "_Value";
         private const string StateValueTypePostfix = "_ValueType";
 
-        private const string PartialStackTrace = "PartialStackTrace";
         private static readonly FileLineInfo[] EmptyPartialStackTrace = new FileLineInfo[0];
 
         private readonly IDictionary states;
@@ -157,7 +161,7 @@ namespace Mechanical3.Misc
         public void Add( StringState state )
         {
             if( state.Name.NullReference() )
-                throw NamedArgumentException.FromParameter(nameof(state)).StoreFileLine();
+                throw NamedArgumentException.From(nameof(state)).StoreFileLine();
 
             // we do not allow overwriting of earlier data
             string name = state.Name;
@@ -178,7 +182,7 @@ namespace Mechanical3.Misc
         /// <value>Indicates whether at least one line of partial stack trace has been added.</value>
         public bool HasPartialStackTrace
         {
-            get { return this.ContainsKey(PartialStackTrace); }
+            get { return this.ContainsKey(PartialStackTraceKey); }
         }
 
         /// <summary>
@@ -188,7 +192,7 @@ namespace Mechanical3.Misc
         public string GetPartialStackTrace()
         {
             StringState state;
-            if( this.TryGetState(PartialStackTrace, out state) )
+            if( this.TryGetState(PartialStackTraceKey, out state) )
                 return state.Value;
             else
                 return null;
@@ -203,7 +207,7 @@ namespace Mechanical3.Misc
             // append to stack trace
             StringState state;
             string newValue;
-            if( this.TryGetState(PartialStackTrace, out state) )
+            if( this.TryGetState(PartialStackTraceKey, out state) )
             {
                 var sb = new StringBuilder(state.Value);
                 sb.Append("\r\n");
@@ -217,7 +221,7 @@ namespace Mechanical3.Misc
 
             // update stored value
             state = StringState.From(
-                name: PartialStackTrace,
+                name: PartialStackTraceKey,
                 value: newValue);
             this.AddOrSet(state);
         }

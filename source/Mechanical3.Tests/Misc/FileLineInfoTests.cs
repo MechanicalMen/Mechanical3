@@ -10,7 +10,7 @@ namespace Mechanical3.Tests.Misc
         [Test]
         public static void DefaultParameterTest()
         {
-            var info = FileLineInfo.Create();
+            var info = FileLineInfo.Current();
             Test.OrdinalEquals("FileLineInfoTests.cs", info.File);
             Test.OrdinalEquals("DefaultParameterTest", info.Member);
             Assert.AreEqual(13, info.Line);
@@ -37,29 +37,36 @@ namespace Mechanical3.Tests.Misc
         [Test]
         public static void BadOrMissingParameterTest()
         {
-            Assert.Throws<ArgumentException>(() => new FileLineInfo(null, null, null)); // no member
-            Assert.Throws<ArgumentOutOfRangeException>(() => new FileLineInfo("a", "b", -1)); // bad line number
-            Assert.Throws<ArgumentNullException>(() => FileLineInfo.Create().ToString(sb: null)); // null StringBuilder
+            // member
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FileLineInfo(null, "member", -1));
 
-            // member only: round-trip
-            var info = new FileLineInfo(null, " member  ", null);
+            // member, file
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FileLineInfo("  file ", "member", -1));
+
+            // member, line
+            var info = new FileLineInfo(null, " member  ", 0);
             Test.OrdinalEquals("member", info.Member);
             Test.OrdinalEquals("  at member", info.ToString());
 
-            // member + line: line number lost when converting to string
-            info = new FileLineInfo(null, " member  ", 3);
-            Assert.AreEqual(3, info.Line.Value);
-            Test.OrdinalEquals("  at member", info.ToString());
-
-            // member + file: round-trip
-            info = new FileLineInfo("  file ", "member", null);
-            Test.OrdinalEquals("file", info.File);
-            Test.OrdinalEquals("  at member in file", info.ToString());
-
-            // member + file + line: round-trip
+            // member, file, line
             info = new FileLineInfo("  file ", "member", 2);
             Test.OrdinalEquals("file", info.File);
             Test.OrdinalEquals("  at member in file:line 2", info.ToString());
+
+            // file
+            Assert.Throws<ArgumentException>(() => new FileLineInfo("  file ", null, -1));
+
+            // line
+            Assert.Throws<ArgumentException>(() => new FileLineInfo(null, null, 0));
+
+            // file, line
+            Assert.Throws<ArgumentException>(() => new FileLineInfo("  file ", null, 0));
+
+            // neither
+            Assert.Throws<ArgumentException>(() => new FileLineInfo(null, null, -1));
+
+            // ToString(...)
+            Assert.Throws<ArgumentNullException>(() => FileLineInfo.Current().ToString(sb: null));
         }
     }
 }

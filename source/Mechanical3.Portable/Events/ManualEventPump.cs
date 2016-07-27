@@ -381,7 +381,7 @@ namespace Mechanical3.Events
                     // enqueue & forget
                     var exceptionEvent = new UnhandledExceptionEvent(unhandledException);
                     var srcPos = e.Event.EnqueueSource.Value;
-                    this.Enqueue(exceptionEvent, srcPos.File, srcPos.Member, srcPos.Line ?? 0); // inherit the source position of the original event
+                    this.Enqueue(exceptionEvent, srcPos.File, srcPos.Member, srcPos.Line); // inherit the source position of the original event
                 }
                 catch( Exception ex )
                 {

@@ -269,7 +269,7 @@ namespace Mechanical3.Tests.Core
             exception = new Exception();
             data = exception.GetStoredData();
             Assert.False(data.HasPartialStackTrace);
-            var srcPos = FileLineInfo.Create();
+            var srcPos = FileLineInfo.Current();
             exception.StoreFileLine(srcPos);
             Assert.True(data.HasPartialStackTrace);
             Test.OrdinalEquals(srcPos.ToString(), data.GetPartialStackTrace());
@@ -280,8 +280,8 @@ namespace Mechanical3.Tests.Core
             exception = new Exception();
             data = exception.GetStoredData();
             Assert.False(data.HasPartialStackTrace);
-            srcPos = FileLineInfo.Create();
-            exception.Store("test", 7, srcPos.File, srcPos.Member, srcPos.Line.Value);
+            srcPos = FileLineInfo.Current();
+            exception.Store("test", 7, srcPos.File, srcPos.Member, srcPos.Line);
             Assert.True(data.HasPartialStackTrace);
             Test.OrdinalEquals(srcPos.ToString(), data.GetPartialStackTrace());
 

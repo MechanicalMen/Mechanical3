@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Mechanical3.Core;
@@ -99,6 +100,19 @@ namespace Mechanical3.Misc
         }
 
         /// <summary>
+        /// Gets the exception's user generated partial stack trace from <see cref="Data"/>.
+        /// </summary>
+        /// <value>The exception's partial stack trace.</value>
+        public string PartialStackTrace
+        {
+            get
+            {
+                var item = this.Data.FirstOrNullable(s => string.Equals(s.Name, StringStateCollection.PartialStackTraceKey, StringComparison.Ordinal));
+                return item.HasValue ? item.Value.Value : null;
+            }
+        }
+
+        /// <summary>
         /// Gets the data manually stored in the exception (using the Store* methods).
         /// </summary>
         /// <value>Data manually stored in the exception.</value>
@@ -147,6 +161,24 @@ namespace Mechanical3.Misc
 
         #region Printing
 
+        private static string IndentMultiLineString( string str, string indentation )
+        {
+            var sb = new StringBuilder();
+            using( var reader = new StringReader(str) )
+            {
+                string line;
+                while( (line = reader.ReadLine()).NotNullReference() )
+                {
+                    if( sb.Length != 0 )
+                        sb.AppendLine();
+
+                    sb.Append(indentation);
+                    sb.Append(line.Trim());
+                }
+            }
+            return sb.ToString();
+        }
+
         private static void Append( StringBuilder sb, ExceptionInfo info, string indentation )
         {
             sb.Append(indentation);
@@ -169,6 +201,9 @@ namespace Mechanical3.Misc
 
                 foreach( var state in info.Data )
                 {
+                    if( string.Equals(state.Name, StringStateCollection.PartialStackTraceKey, StringComparison.Ordinal) )
+                        continue;
+
                     sb.AppendLine(); // newline here
                     sb.Append(indentation);
                     sb.Append(SingleIndentation);
@@ -184,7 +219,15 @@ namespace Mechanical3.Misc
                 sb.AppendLine();
                 sb.Append(indentation);
                 sb.AppendLine("StackTrace:");
-                sb.Append(info.StackTrace);
+                sb.Append(IndentMultiLineString(info.StackTrace, indentation + SingleIndentation));
+            }
+
+            if( !info.PartialStackTrace.NullOrEmpty() )
+            {
+                sb.AppendLine();
+                sb.Append(indentation);
+                sb.AppendLine("PartialStackTrace:");
+                sb.Append(IndentMultiLineString(info.PartialStackTrace, indentation + SingleIndentation));
             }
 
             if( info.InnerException.NotNullReference() )

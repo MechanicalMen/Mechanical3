@@ -55,18 +55,18 @@ Message: test message",
             info = new ExceptionInfo(
                 new Exception(
                     "some exception",
-                    new TestException().Store("inner", "a"))
+                    new TestException()
+                        .Store("inner", "a")
+                        .StoreFileLine()) // multi-line partial stack trace
                     .Store("outer", 1));
             Test.OrdinalEquals("Exception", info.Type);
-            Assert.AreEqual(1, info.Data.Length);
-            var testData = info.Data[0];
-            Test.OrdinalEquals("outer", testData.Name);
+            Assert.AreEqual(2, info.Data.Length);
+            var testData = info.Data.FirstOrNullable(s => string.Equals("outer", s.Name, StringComparison.Ordinal)).Value;
             Test.OrdinalEquals("1", testData.Value);
             Test.OrdinalEquals("int", testData.ValueType);
             Assert.AreEqual(1, info.InnerExceptions.Length);
             Test.OrdinalEquals("Mechanical3.Tests.Misc.ExceptionInfoTests.TestException", info.InnerExceptions[0].Type);
-            testData = info.InnerExceptions[0].Data[0];
-            Test.OrdinalEquals("inner", testData.Name);
+            testData = info.InnerExceptions[0].Data.FirstOrNullable(s => string.Equals("inner", s.Name, StringComparison.Ordinal)).Value;
             Test.OrdinalEquals("a", testData.Value);
             Test.OrdinalEquals("string", testData.ValueType);
             Test.OrdinalEquals(
@@ -74,13 +74,18 @@ Message: test message",
 Message: some exception
 Data:
   outer = 1
+PartialStackTrace:
+  at ConstructorTests in ExceptionInfoTests.cs:line 61
 
 
 InnerException:
   Type: Mechanical3.Tests.Misc.ExceptionInfoTests.TestException
   Message: test message
   Data:
-    inner = ""a""",
+    inner = ""a""
+  PartialStackTrace:
+    at ConstructorTests in ExceptionInfoTests.cs:line 59
+    at ConstructorTests in ExceptionInfoTests.cs:line 60",
                 info.ToString());
 
 
@@ -92,9 +97,8 @@ InnerException:
             Test.OrdinalEquals("AggregateException", info.Type);
             Assert.AreEqual(2, info.InnerExceptions.Length);
             Test.OrdinalEquals("Mechanical3.Tests.Misc.ExceptionInfoTests.TestException", info.InnerExceptions[1].Type);
-            Assert.AreEqual(1, info.InnerExceptions[1].Data.Length);
-            testData = info.InnerExceptions[1].Data[0];
-            Test.OrdinalEquals("testDataName", testData.Name);
+            Assert.AreEqual(2, info.InnerExceptions[1].Data.Length);
+            testData = info.InnerExceptions[1].Data.FirstOrNullable(s => string.Equals("testDataName", s.Name, StringComparison.Ordinal)).Value;
             Test.OrdinalEquals("testDataValue2", testData.Value);
             Test.OrdinalEquals("string", testData.ValueType);
             Test.OrdinalEquals(
@@ -107,13 +111,17 @@ InnerExceptions[0]:
   Message: test message
   Data:
     testDataName = ""testDataValue1""
+  PartialStackTrace:
+    at ConstructorTests in ExceptionInfoTests.cs:line 95
 
 
 InnerExceptions[1]:
   Type: Mechanical3.Tests.Misc.ExceptionInfoTests.TestException
   Message: test message
   Data:
-    testDataName = ""testDataValue2""",
+    testDataName = ""testDataValue2""
+  PartialStackTrace:
+    at ConstructorTests in ExceptionInfoTests.cs:line 96",
                 info.ToString());
 
 
@@ -128,7 +136,7 @@ Message: Exception of type 'System.Exception' was thrown.
 Data:
   a = 1
 StackTrace:
-   at Mechanical3.Tests.Misc.ExceptionInfoTests.ForceStackTrace(Exception ex) in ", // NOTE: we cut things short, since the location of the repository will probably change for each user
+  at Mechanical3.Tests.Misc.ExceptionInfoTests.ForceStackTrace(Exception ex) in ", // NOTE: we cut things short, since the location of the repository will probably change for each user
                 StringComparison.Ordinal));
         }
 
