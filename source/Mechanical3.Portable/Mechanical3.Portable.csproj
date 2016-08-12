@@ -48,6 +48,7 @@
     <Compile Include="Core\SafeString.cs" />
     <Compile Include="Core\StringPattern.cs" />
     <Compile Include="DataStores\DataStore.cs" />
+    <Compile Include="DataStores\DataStoreExtensions.cs" />
     <Compile Include="DataStores\DataStoreFileFormatWriterOptions.cs" />
     <Compile Include="DataStores\DataStoreTextReader.cs" />
     <Compile Include="DataStores\DataStoreTextWriter.cs" />
