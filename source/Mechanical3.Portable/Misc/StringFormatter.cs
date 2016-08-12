@@ -665,13 +665,10 @@ namespace Mechanical3.Misc
                         var typeDef = type.GetGenericTypeDefinition();
                         if( typeDef == typeof(Nullable<>) )
                         {
-                            if( arg.NullReference() )
-                                formattedArg = Null;
-
-                            var hasValue = (bool)arg.GetType().GetTypeInfo().GetDeclaredProperty("HasValue").GetValue(arg, index: null);
+                            var hasValue = (bool)typeInfo.GetDeclaredProperty("HasValue").GetValue(arg, index: null);
                             if( hasValue )
                             {
-                                object value = arg.GetType().GetTypeInfo().GetDeclaredProperty("Value").GetValue(arg, index: null);
+                                object value = typeInfo.GetDeclaredProperty("Value").GetValue(arg, index: null);
                                 formattedArg = SafeString.Print(value, format, formatProvider: this);
                             }
                             else
@@ -679,10 +676,26 @@ namespace Mechanical3.Misc
                                 formattedArg = Null;
                             }
                         }
+                        else if( typeDef == typeof(KeyValuePair<,>) )
+                        {
+                            object key = typeInfo.GetDeclaredProperty("Key").GetValue(arg, index: null);
+                            object value = typeInfo.GetDeclaredProperty("Value").GetValue(arg, index: null);
+                            formattedArg = string.Format(
+                                "[{0}, {1}]",
+                                SafeString.Print(key, format, formatProvider: this),
+                                SafeString.Print(value, format, formatProvider: this));
+                        }
+                        else
+                        {
+                            // No custom formatting available here, but maybe our base type has something...
+                            return base.TryFormat(arg, format, out formattedArg);
+                        }
                     }
-
-                    // No custom formatting available here, but maybe our base type has something...
-                    return base.TryFormat(arg, format, out formattedArg);
+                    else
+                    {
+                        // No custom formatting available here, but maybe our base type has something...
+                        return base.TryFormat(arg, format, out formattedArg);
+                    }
                 }
 
                 return true;
