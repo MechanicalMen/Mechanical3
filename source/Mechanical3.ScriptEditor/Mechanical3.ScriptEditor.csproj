@@ -95,7 +95,20 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ScriptCommandBase.cs" />
+    <Compile Include="ScriptCommandParameter.Base.cs" />
+    <Compile Include="ScriptCommandParameter.SingleChoice.cs" />
+    <Compile Include="ScriptCommandParameter.MultipleChoice.cs" />
+    <Compile Include="ScriptCommandParameter.Boolean.cs" />
+    <Compile Include="ScriptCommandView.xaml.cs">
+      <DependentUpon>ScriptCommandView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptCommandViewModel.cs" />
     <Compile Include="ScriptEditorViewModel.cs" />
+    <Page Include="ScriptCommandView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ScriptEditorControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -129,6 +142,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Compile Include="ScriptCommandParameter.Text.cs" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
