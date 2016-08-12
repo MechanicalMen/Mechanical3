@@ -109,9 +109,14 @@
     <Compile Include="Misc\UIThreadAwaiter.cs" />
     <Compile Include="MVVM\BoolToObjectConverter.cs" />
     <Compile Include="MVVM\DelegateCommand.cs" />
+    <Compile Include="MVVM\IPropertyChangedListener.cs" />
     <Compile Include="MVVM\NotConverter.cs" />
     <Compile Include="MVVM\PropertyChangedActions.cs" />
     <Compile Include="MVVM\PropertyChangedBase.cs" />
+    <Compile Include="MVVM\PropertyChangedListenerAction.cs" />
+    <Compile Include="MVVM\PropertyChangedListenerChain.cs" />
+    <Compile Include="MVVM\PropertyChangedListenerCollection.cs" />
+    <Compile Include="MVVM\PropertyChangedSource.cs" />
     <Compile Include="MVVM\SimpleConverterBase.cs" />
     <Compile Include="MVVM\UI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
