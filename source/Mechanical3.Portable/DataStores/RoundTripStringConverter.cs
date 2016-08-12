@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using Mechanical3.Core;
+using Mechanical3.IO.FileSystems;
 
 namespace Mechanical3.DataStores
 {
@@ -358,28 +359,109 @@ namespace Mechanical3.DataStores
 
         #endregion
 
+        #region FilePath
+
+        private class FilePathConverter : IStringConverter<FilePath>
+        {
+            public string ToString( FilePath obj )
+            {
+                return obj?.ToString();
+            }
+
+            public bool TryParse( string str, out FilePath obj )
+            {
+                try
+                {
+                    obj = str.NullReference() ? null : FilePath.From(str);
+                    return true;
+                }
+                catch
+                {
+                    obj = null;
+                    return false;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Enum<TEnum>
+
+        /// <summary>
+        /// Converts between <typeparamref name="TEnum"/> and <see cref="string"/>.
+        /// </summary>
+        /// <typeparam name="TEnum">The enumeration to convert instances of.</typeparam>
+        public class Enum<TEnum> : IStringConverter<TEnum>
+            where TEnum : struct, IComparable, IFormattable // IConvertible
+        {
+            /// <summary>
+            /// The default instance of the type.
+            /// </summary>
+            public static readonly Enum<TEnum> Default = new Enum<TEnum>();
+
+            /// <summary>
+            /// Converts the specified object to a <see cref="string"/>.
+            /// </summary>
+            /// <param name="obj">The object to convert to a string.</param>
+            /// <returns>The string representation of the specified object. Never <c>null</c>.</returns>
+            public string ToString( TEnum obj )
+            {
+                return Enum.GetName(typeof(TEnum), obj);
+            }
+
+            /// <summary>
+            /// Tries to parse the specified <see cref="string"/>.
+            /// </summary>
+            /// <param name="str">The string representation to parse.</param>
+            /// <param name="obj">The result of a successful parsing; or otherwise the default instance of the type.</param>
+            /// <returns><c>true</c> if the string was successfully parsed; otherwise, <c>false</c>.</returns>
+            public bool TryParse( string str, out TEnum obj )
+            {
+                return Enum.TryParse(str, out obj);
+            }
+        }
+
+        #endregion
+
         #region Locator
 
         static RoundTripStringConverter()
         {
             var collection = new StringConverterCollection();
             collection.Add(new SByteConverter());
+            collection.Add(new NullableStringConverter<sbyte>(new SByteConverter()));
             collection.Add(new ByteConverter());
+            collection.Add(new NullableStringConverter<byte>(new ByteConverter()));
             collection.Add(new Int16Converter());
+            collection.Add(new NullableStringConverter<short>(new Int16Converter()));
             collection.Add(new UInt16Converter());
+            collection.Add(new NullableStringConverter<ushort>(new UInt16Converter()));
             collection.Add(new Int32Converter());
+            collection.Add(new NullableStringConverter<int>(new Int32Converter()));
             collection.Add(new UInt32Converter());
+            collection.Add(new NullableStringConverter<uint>(new UInt32Converter()));
             collection.Add(new Int64Converter());
+            collection.Add(new NullableStringConverter<long>(new Int64Converter()));
             collection.Add(new UInt64Converter());
+            collection.Add(new NullableStringConverter<ulong>(new UInt64Converter()));
             collection.Add(new SingleConverter());
+            collection.Add(new NullableStringConverter<float>(new SingleConverter()));
             collection.Add(new DoubleConverter());
+            collection.Add(new NullableStringConverter<double>(new DoubleConverter()));
             collection.Add(new DecimalConverter());
+            collection.Add(new NullableStringConverter<decimal>(new DecimalConverter()));
             collection.Add(new BooleanConverter());
+            collection.Add(new NullableStringConverter<bool>(new BooleanConverter()));
             collection.Add(new CharConverter());
+            collection.Add(new NullableStringConverter<char>(new CharConverter()));
             collection.Add(new StringConverter());
             collection.Add(new DateTimeConverter());
+            collection.Add(new NullableStringConverter<DateTime>(new DateTimeConverter()));
             collection.Add(new DateTimeOffsetConverter());
+            collection.Add(new NullableStringConverter<DateTimeOffset>(new DateTimeOffsetConverter()));
             collection.Add(new TimeSpanConverter());
+            collection.Add(new NullableStringConverter<TimeSpan>(new TimeSpanConverter()));
+            collection.Add(new FilePathConverter());
             Locator = collection;
         }
 

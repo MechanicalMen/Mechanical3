@@ -52,7 +52,6 @@ namespace Mechanical3.DataStores
         /// <param name="str">The string representation to parse.</param>
         /// <param name="obj">The result of a successful parsing; or otherwise the default instance of the type.</param>
         /// <returns><c>true</c> if the string was successfully parsed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="str"/> is <c>null</c>.</exception>
         public bool TryParse( string str, out DateTime obj )
         {
             return DateTime.TryParseExact(str, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out obj);
@@ -78,7 +77,6 @@ namespace Mechanical3.DataStores
         /// <param name="str">The string representation to parse.</param>
         /// <param name="obj">The result of a successful parsing; or otherwise the default instance of the type.</param>
         /// <returns><c>true</c> if the string was successfully parsed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="str"/> is <c>null</c>.</exception>
         public bool TryParse( string str, out DateTimeOffset obj )
         {
             return DateTimeOffset.TryParseExact(str, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out obj);
@@ -109,7 +107,6 @@ namespace Mechanical3.DataStores
         /// <param name="str">The string representation to parse.</param>
         /// <param name="obj">The result of a successful parsing; or otherwise the default instance of the type.</param>
         /// <returns><c>true</c> if the string was successfully parsed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="str"/> is <c>null</c>.</exception>
         public bool TryParse( string str, out TimeSpan obj )
         {
             return TimeSpan.TryParseExact(str?.Trim(), TimeSpanFormat, CultureInfo.InvariantCulture, TimeSpanStyles.None, out obj);

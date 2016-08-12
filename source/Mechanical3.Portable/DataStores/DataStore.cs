@@ -106,7 +106,6 @@ namespace Mechanical3.DataStores
         /// <param name="obj">The result of a successful parsing; or otherwise the default instance of the type.</param>
         /// <param name="locator">The <see cref="IStringConverterLocator"/> to use; or <c>null</c> for <see cref="RoundTripStringConverter.Locator"/>.</param>
         /// <returns><c>true</c> if the string was successfully parsed; otherwise, <c>false</c>.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="str"/> is <c>null</c>.</exception>
         public static bool TryParse<T>( string str, out T obj, IStringConverterLocator locator = null )
         {
             if( locator.NullReference() )
