@@ -38,7 +38,7 @@ namespace Mechanical3.Tests.DataStores.Json
         public static void ComplexJsonReaderTests()
         {
             TestData.AssertEquals(
-                JsonFileFormatReader.FromJson(ComplexJson),
+                JsonFileFormatFactory.Default.CreateReader(ComplexJson),
                 ToJsonOutputs(ComplexOutputs));
         }
 
@@ -97,15 +97,15 @@ namespace Mechanical3.Tests.DataStores.Json
         public static void SimpleJsonReaderTests()
         {
             TestData.AssertEquals(
-                JsonFileFormatReader.FromJson(SimpleJson_ArrayRoot),
+                JsonFileFormatFactory.Default.CreateReader(SimpleJson_ArrayRoot),
                 ToJsonOutputs(TestData.FileFormatReaderOutput.SimpleOutput_ArrayRoot));
 
             TestData.AssertEquals(
-                JsonFileFormatReader.FromJson(SimpleJson_NestedObjects),
+                JsonFileFormatFactory.Default.CreateReader(SimpleJson_NestedObjects),
                 ToJsonOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects));
 
             TestData.AssertEquals(
-                JsonFileFormatReader.FromJson(SimpleJson_NestedArrays),
+                JsonFileFormatFactory.Default.CreateReader(SimpleJson_NestedArrays),
                 ToJsonOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedArrays));
         }
 

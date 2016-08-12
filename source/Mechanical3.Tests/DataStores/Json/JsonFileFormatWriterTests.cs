@@ -13,7 +13,7 @@ namespace Mechanical3.Tests.DataStores.Json
         private static string ToString( TestData.FileFormatReaderOutput[] outputs )
         {
             var sb = new StringBuilder();
-            using( var writer = JsonFileFormatWriter.From(sb) )
+            using( var writer = JsonFileFormatFactory.Default.CreateWriter(sb) )
             {
                 foreach( var output in outputs )
                 {

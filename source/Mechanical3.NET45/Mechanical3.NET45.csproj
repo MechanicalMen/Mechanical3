@@ -52,6 +52,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStores\Json\JsonFileFormatFactory.cs" />
     <Compile Include="DataStores\Json\JsonFileFormatReader.cs" />
     <Compile Include="DataStores\Json\JsonFileFormatWriter.cs" />
     <Compile Include="IO\FileSystems\CommonDesktopFileSystems.cs" />

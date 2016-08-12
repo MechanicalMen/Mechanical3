@@ -13,7 +13,7 @@ namespace Mechanical3.Tests.DataStores.Xml
         private static string ToString( TestData.FileFormatReaderOutput[] outputs )
         {
             var sb = new StringBuilder();
-            using( var writer = XmlFileFormatWriter.From(sb) )
+            using( var writer = XmlFileFormatFactory.Default.CreateWriter(sb) )
             {
                 foreach( var output in outputs )
                 {

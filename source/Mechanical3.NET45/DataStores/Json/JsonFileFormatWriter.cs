@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Mechanical3.Core;
 using Newtonsoft.Json;
 
@@ -12,29 +10,6 @@ namespace Mechanical3.DataStores.Json
     /// </summary>
     public class JsonFileFormatWriter : DisposableObject, IDataStoreTextFileFormatWriter
     {
-        #region StringWriterWithEncoding
-
-        private class StringWriterWithEncoding : StringWriter
-        {
-            private readonly Encoding encoding;
-
-            internal StringWriterWithEncoding( StringBuilder sb, Encoding encoding )
-                : base(sb)
-            {
-                if( encoding.NullReference() )
-                    throw new ArgumentNullException(nameof(encoding)).StoreFileLine();
-
-                this.encoding = encoding;
-            }
-
-            public override Encoding Encoding
-            {
-                get { return this.encoding; }
-            }
-        }
-
-        #endregion
-
         #region Private Fields
 
         private readonly HashSet<Type> rawValueTypes;
@@ -49,7 +24,7 @@ namespace Mechanical3.DataStores.Json
         /// Initializes a new instance of the <see cref="JsonFileFormatWriter"/> class.
         /// </summary>
         /// <param name="writer">The <see cref="JsonWriter"/> to use.</param>
-        public JsonFileFormatWriter( JsonWriter writer )
+        internal JsonFileFormatWriter( JsonWriter writer )
         {
             if( writer.NullReference() )
                 throw new ArgumentNullException(nameof(writer)).StoreFileLine();
@@ -74,63 +49,6 @@ namespace Mechanical3.DataStores.Json
             this.jsonWriter.WriteStartObject();
             this.jsonWriter.WritePropertyName("FormatVersion");
             this.jsonWriter.WriteRawValue("2");
-        }
-
-        /// <summary>
-        /// Creates a writer from a <see cref="TextWriter"/>.
-        /// </summary>
-        /// <param name="textWriter">The <see cref="TextWriter"/> to use.</param>
-        /// <param name="options">The file formatting options to use; or <c>null</c> to use the default formatting.</param>
-        /// <returns>A new json file format writer instance.</returns>
-        public static IDataStoreTextFileFormatWriter From( TextWriter textWriter, DataStoreFileFormatWriterOptions options = null )
-        {
-            if( textWriter.NullReference() )
-                throw new ArgumentNullException(nameof(textWriter)).StoreFileLine();
-
-            if( options.NullReference() )
-                options = DataStoreFileFormatWriterOptions.Default;
-
-            if( textWriter.Encoding != options.Encoding )
-                throw new ArgumentException("Invalid TextWriter encoding!").Store("actualEncoding", textWriter.Encoding.EncodingName).Store("expectedEncoding", options.Encoding.EncodingName);
-
-            textWriter.NewLine = options.NewLine;
-            var jsonWriter = new JsonTextWriter(textWriter);
-            jsonWriter.Formatting = options.Indent ? Formatting.Indented : Formatting.None;
-            return new JsonFileFormatWriter(jsonWriter);
-        }
-
-        /// <summary>
-        /// Creates a writer from a <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to use.</param>
-        /// <param name="options">The file formatting options to use; or <c>null</c> to use the default formatting.</param>
-        /// <returns>A new json file format writer instance.</returns>
-        public static IDataStoreTextFileFormatWriter From( Stream stream, DataStoreFileFormatWriterOptions options = null )
-        {
-            if( stream.NullReference() )
-                throw new ArgumentNullException(nameof(stream)).StoreFileLine();
-
-            if( options.NullReference() )
-                options = DataStoreFileFormatWriterOptions.Default;
-
-            return From(new StreamWriter(stream, options.Encoding));
-        }
-
-        /// <summary>
-        /// Creates a writer from a <see cref="StringBuilder"/>.
-        /// </summary>
-        /// <param name="sb">The <see cref="StringBuilder"/> to write to.</param>
-        /// <param name="options">The file formatting options to use; or <c>null</c> to use the default formatting.</param>
-        /// <returns>A new json file format writer instance.</returns>
-        public static IDataStoreTextFileFormatWriter From( StringBuilder sb, DataStoreFileFormatWriterOptions options = null )
-        {
-            if( sb.NullReference() )
-                throw new ArgumentNullException(nameof(sb)).StoreFileLine();
-
-            if( options.NullReference() )
-                options = DataStoreFileFormatWriterOptions.Default;
-
-            return From(new StringWriterWithEncoding(sb, options.Encoding));
         }
 
         #endregion

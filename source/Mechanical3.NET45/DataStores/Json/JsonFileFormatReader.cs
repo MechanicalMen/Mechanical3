@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using Mechanical3.Core;
 using Newtonsoft.Json;
 
@@ -26,7 +25,7 @@ namespace Mechanical3.DataStores.Json
         /// Initializes a new instance of the <see cref="JsonFileFormatReader"/> class.
         /// </summary>
         /// <param name="reader">The <see cref="JsonReader"/> to use.</param>
-        public JsonFileFormatReader( JsonReader reader )
+        internal JsonFileFormatReader( JsonReader reader )
         {
             if( reader.NullReference() )
                 throw new ArgumentNullException(nameof(reader)).StoreFileLine();
@@ -46,45 +45,6 @@ namespace Mechanical3.DataStores.Json
 
             // read data store start
             this.ReadPropertyName("DataStore");
-        }
-
-        /// <summary>
-        /// Creates a reader from a <see cref="TextReader"/>.
-        /// </summary>
-        /// <param name="textReader">The <see cref="TextReader"/> to use.</param>
-        /// <returns>A new json file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader From( TextReader textReader )
-        {
-            if( textReader.NullReference() )
-                throw new ArgumentNullException(nameof(textReader)).StoreFileLine();
-
-            return new JsonFileFormatReader(new JsonTextReader(textReader));
-        }
-
-        /// <summary>
-        /// Creates a reader from a <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to use.</param>
-        /// <returns>A new json file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader From( Stream stream )
-        {
-            if( stream.NullReference() )
-                throw new ArgumentNullException(nameof(stream)).StoreFileLine();
-
-            return From(new StreamReader(stream));
-        }
-
-        /// <summary>
-        /// Creates a reader from an JSON string.
-        /// </summary>
-        /// <param name="json">The JSON string to read.</param>
-        /// <returns>A new json file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader FromJson( string json )
-        {
-            if( json.NullOrEmpty() )
-                throw new ArgumentException("Json readers can only be created from valid json!").Store(nameof(json), json);
-
-            return From(new StringReader(json));
         }
 
         #endregion

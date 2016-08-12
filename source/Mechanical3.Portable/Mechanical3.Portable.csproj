@@ -52,6 +52,7 @@
     <Compile Include="DataStores\DataStoreTextReader.cs" />
     <Compile Include="DataStores\DataStoreTextWriter.cs" />
     <Compile Include="DataStores\DataStoreToken.cs" />
+    <Compile Include="DataStores\IDataStoreTextFileFormatFactory.cs" />
     <Compile Include="DataStores\IDataStoreTextFileFormatReader.cs" />
     <Compile Include="DataStores\IDataStoreTextFileFormatWriter.cs" />
     <Compile Include="DataStores\ISO8601Converter.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="DataStores\RoundTripStringConverter.cs" />
     <Compile Include="DataStores\IStringConverter.cs" />
     <Compile Include="DataStores\IStringConverterLocator.cs" />
+    <Compile Include="DataStores\Xml\XmlFileFormatFactory.cs" />
     <Compile Include="DataStores\Xml\XmlFileFormatReader.cs" />
     <Compile Include="DataStores\Xml\XmlFileFormatReader2.cs" />
     <Compile Include="DataStores\Xml\XmlFileFormatReader3.cs" />

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Xml;
 using Mechanical3.Core;
 
@@ -9,14 +8,14 @@ namespace Mechanical3.DataStores.Xml
     /// <summary>
     /// Creates an <see cref="IDataStoreTextFileFormatReader"/> for Mechanical3 and Mechanical2 XML data store formats.
     /// </summary>
-    public static class XmlFileFormatReader
+    internal static class XmlFileFormatReader
     {
         /// <summary>
         /// Creates a reader from an <see cref="XmlReader"/>.
         /// </summary>
         /// <param name="xmlReader">The <see cref="XmlReader"/> to use.</param>
         /// <returns>A new xml file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader From( XmlReader xmlReader )
+        internal static IDataStoreTextFileFormatReader From( XmlReader xmlReader )
         {
             if( xmlReader.NullReference() )
                 throw new ArgumentNullException(nameof(xmlReader)).StoreFileLine();
@@ -64,45 +63,6 @@ namespace Mechanical3.DataStores.Xml
             default:
                 throw new FormatException("Unknown xml format version!").Store(nameof(formatVersion), formatVersion);
             }
-        }
-
-        /// <summary>
-        /// Creates a reader from a <see cref="TextReader"/>.
-        /// </summary>
-        /// <param name="textReader">The <see cref="TextReader"/> to use.</param>
-        /// <returns>A new xml file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader From( TextReader textReader )
-        {
-            if( textReader.NullReference() )
-                throw new ArgumentNullException(nameof(textReader)).StoreFileLine();
-
-            return From(XmlReader.Create(textReader));
-        }
-
-        /// <summary>
-        /// Creates a reader from a <see cref="Stream"/>.
-        /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to use.</param>
-        /// <returns>A new xml file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader From( Stream stream )
-        {
-            if( stream.NullReference() )
-                throw new ArgumentNullException(nameof(stream)).StoreFileLine();
-
-            return From(XmlReader.Create(stream));
-        }
-
-        /// <summary>
-        /// Creates a reader from an XML string.
-        /// </summary>
-        /// <param name="xml">The XML string to read.</param>
-        /// <returns>A new xml file format reader instance.</returns>
-        public static IDataStoreTextFileFormatReader FromXml( string xml )
-        {
-            if( xml.NullOrEmpty() )
-                throw new ArgumentException("Xml readers can only be created from valid xml!").Store(nameof(xml), xml);
-
-            return From(new StringReader(xml));
         }
     }
 }

@@ -69,11 +69,11 @@ namespace Mechanical3.Tests.DataStores.Xml
         public static void ComplexXmlReaderTests()
         {
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(ComplexXml_Format3),
+                XmlFileFormatFactory.Default.CreateReader(ComplexXml_Format3),
                 ToXmlOutputs(ComplexOutputs_Format3, rootName: "DataStore"));
 
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(ComplexXml_Format2),
+                XmlFileFormatFactory.Default.CreateReader(ComplexXml_Format2),
                 ComplexOutputs_Format2);
         }
 
@@ -141,20 +141,20 @@ namespace Mechanical3.Tests.DataStores.Xml
         public static void SimpleXmlReaderTests()
         {
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(SimpleXml_ArrayRoot_Format3),
+                XmlFileFormatFactory.Default.CreateReader(SimpleXml_ArrayRoot_Format3),
                 ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_ArrayRoot, rootName: "DataStore"));
 
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format3),
+                XmlFileFormatFactory.Default.CreateReader(SimpleXml_NestedObjects_Format3),
                 ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects, rootName: "DataStore"));
 
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(SimpleXml_NestedArrays_Format3.Replace("DataStore", "RandomName")), // different root name test
+                XmlFileFormatFactory.Default.CreateReader(SimpleXml_NestedArrays_Format3.Replace("DataStore", "RandomName")), // different root name test
                 ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedArrays, rootName: "RandomName"));
 
 
             TestData.AssertEquals(
-                XmlFileFormatReader.FromXml(SimpleXml_NestedObjects_Format2),
+                XmlFileFormatFactory.Default.CreateReader(SimpleXml_NestedObjects_Format2),
                 ToXmlOutputs(TestData.FileFormatReaderOutput.SimpleOutput_NestedObjects, rootName: "DataStore"));
         }
 
