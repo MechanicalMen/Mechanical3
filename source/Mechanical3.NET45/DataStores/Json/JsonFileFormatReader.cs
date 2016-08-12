@@ -31,6 +31,7 @@ namespace Mechanical3.DataStores.Json
                 throw new ArgumentNullException(nameof(reader)).StoreFileLine();
 
             this.jsonReader = reader;
+            this.jsonReader.DateParseHandling = DateParseHandling.None;
 
             // read object start
             this.AssertCanRead();
