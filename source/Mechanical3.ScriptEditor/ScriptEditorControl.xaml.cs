@@ -21,8 +21,6 @@ namespace Mechanical3.ScriptEditor
     /// </summary>
     public partial class ScriptEditorControl : UserControl
     {
-        private ScriptEditorViewModel vm = null;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ScriptEditorControl"/> class.
         /// </summary>
@@ -30,29 +28,63 @@ namespace Mechanical3.ScriptEditor
         {
             this.InitializeComponent();
 
-            this.DataContextChanged += ( s, e ) =>
-            {
-                var oldVM = this.vm;
-                var newVM = this.DataContext as ScriptEditorViewModel;
-                this.vm = newVM;
-
-                if( oldVM.NotNullReference() )
-                    oldVM.PropertyChanged -= this.OnVM_PropertyChanged;
-
-                if( newVM.NotNullReference() )
-                {
-                    newVM.PropertyChanged += this.OnVM_PropertyChanged;
-                    this.OnVM_PropertyChanged(newVM, new System.ComponentModel.PropertyChangedEventArgs(nameof(ScriptEditorViewModel.Code)));
-                }
-            };
+            this.codeEditor.TextChanged += this.codeEditor_TextChanged;
+            this.SetBinding(CodeProperty, new Binding("DataContext.Code") { Source = this, Mode = BindingMode.TwoWay });
         }
 
-        private void OnVM_PropertyChanged( object sender, System.ComponentModel.PropertyChangedEventArgs e )
+        /// <summary>
+        /// Identifies the <see cref="ScriptEditorControl.Code"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty CodeProperty = DependencyProperty.Register(
+            name: "Code",
+            propertyType: typeof(string),
+            ownerType: typeof(ScriptEditorControl),
+            typeMetadata: new PropertyMetadata(
+                defaultValue: null,
+                propertyChangedCallback: OnCodeChanged));
+
+        /// <summary>
+        /// Gets or sets the code displayed in the editor.
+        /// </summary>
+        /// <value>The code displayed in the editor.</value>
+        public string Code
         {
-            if( string.Equals(e.PropertyName, nameof(ScriptEditorViewModel.Code), StringComparison.Ordinal)
-             && object.ReferenceEquals(this.vm, sender) )
-                this.codeEditor.Text = this.vm.Code;
+            get { return (string)this.GetValue(CodeProperty); }
+            set { this.SetValue(CodeProperty, value); }
         }
+
+        private static void OnCodeChanged( DependencyObject source, DependencyPropertyChangedEventArgs e )
+        {
+            var control = (ScriptEditorControl)source;
+            var newCode = (string)e.NewValue;
+
+            if( !control.SuppressCodeChanged )
+            {
+                control.SuppressCodeEditorTextChanged = true;
+                control.codeEditor.Text = newCode;
+                control.SuppressCodeEditorTextChanged = false;
+            }
+        }
+
+        private void codeEditor_TextChanged( object sender, EventArgs e )
+        {
+            this.SuppressCodeChanged = true;
+            this.Code = this.codeEditor.Text;
+            this.SuppressCodeChanged = false;
+        }
+
+        private bool SuppressCodeEditorTextChanged
+        {
+            set
+            {
+                if( value )
+                    this.codeEditor.TextChanged -= this.codeEditor_TextChanged;
+                else
+                    this.codeEditor.TextChanged += this.codeEditor_TextChanged;
+            }
+        }
+
+        private bool SuppressCodeChanged { get; set; } = false;
 
         private async void codeEditor_KeyDown( object sender, KeyEventArgs e )
         {
