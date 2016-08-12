@@ -158,13 +158,27 @@ namespace Mechanical3.ScriptEditor
             catch( CompilationErrorException ex )
             {
                 var diagnostics = string.Join(Environment.NewLine, ex.Diagnostics);
-                Log.Debug("Failed to run script!", ex.Store(nameof(this.Code), code).Store(nameof(ex.Diagnostics), diagnostics));
+                Log.Debug("Failed to compile script!", ex.Store(nameof(this.Code), code).Store(nameof(ex.Diagnostics), diagnostics));
 
                 UI.Invoke(() =>
                 {
                     MessageBox.Show(
                         diagnostics,
-                        "Script error!",
+                        "Script compilation error!",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning,
+                        MessageBoxResult.OK);
+                });
+            }
+            catch( Exception ex )
+            {
+                Log.Debug("Unhandled script exception!", ex);
+
+                UI.Invoke(() =>
+                {
+                    MessageBox.Show(
+                        SafeString.DebugPrint(ex),
+                        "Unhandled script exception!",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning,
                         MessageBoxResult.OK);
