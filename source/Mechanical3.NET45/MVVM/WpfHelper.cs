@@ -91,9 +91,52 @@ namespace Mechanical3.MVVM
 
         #endregion
 
+        #region AppDomain exceptions
+
+        private static bool appDomainExceptionsHandled = false;
+
+        /// <summary>
+        /// Handles <see cref="AppDomain.UnhandledException"/>, immediately logs it's argument,
+        /// and then tries to properly close the application.
+        /// </summary>
+        public static void LogAppDomainExceptions()
+        {
+            lock( strongReferences )
+            {
+                if( appDomainExceptionsHandled )
+                    throw new InvalidOperationException("The exceptions are already being handled!").StoreFileLine();
+
+                appDomainExceptionsHandled = true;
+                AppDomain.CurrentDomain.UnhandledException += ( s, e ) =>
+                {
+                    //// NOTE: I have experienced this event handler not finishing, and therefore
+                    ////       failing to log the exception, presumably when it took too long to execute.
+                    ////       (The handler was blocked, waiting for the UnhandledExceptionEvent to be
+                    ////       handled on the event queue thread.)
+
+                    //// TODO: a few quick searches did not turn up any articles about the handler being aborted. Try to verify that this can happen! (could it have been a bug in the old code?)
+
+                    // NOTE: MSDN about IsTerminating: "Beginning with the .NET Framework version 2.0, this property returns true for most unhandled exceptions..."
+                    if( !e.IsTerminating )
+                    {
+                        // there is no rush
+                        MechanicalApp.EnqueueException((Exception)e.ExceptionObject);
+                    }
+                    else
+                    {
+                        // there may not be enough time to properly handle the exception, so just log it and try to finish.
+                        Log.Fatal("An unhandled exception terminated the application!", (Exception)e.ExceptionObject);
+                        MechanicalApp.EventQueue.BeginClose();
+                    }
+                };
+            }
+        }
+
+        #endregion
+
         #region Dispatcher exceptions
 
-        private static bool exceptionsHandled = false;
+        private static bool dispatcherExceptionsHandled = false;
 
         /// <summary>
         /// Handles <see cref="Application.DispatcherUnhandledException"/>, and enqueues exceptions
@@ -107,10 +150,10 @@ namespace Mechanical3.MVVM
 
             lock( strongReferences )
             {
-                if( exceptionsHandled )
+                if( dispatcherExceptionsHandled )
                     throw new InvalidOperationException("The exceptions are already being handled!").StoreFileLine();
 
-                exceptionsHandled = true;
+                dispatcherExceptionsHandled = true;
                 application.DispatcherUnhandledException += ( s, e ) =>
                 {
                     MechanicalApp.EnqueueException(e.Exception);
@@ -154,7 +197,7 @@ namespace Mechanical3.MVVM
                 overwriteIfExists: true);
 
             // create and use logger
-            var logger = new DataStoreTextLogger(new DataStoreTextWriter(JsonFileFormatWriter.From(stream)));
+            var logger = new DataStoreTextLogger(new DataStoreTextWriter(JsonFileFormatFactory.Default.CreateWriter(stream)));
             Log.SetLogger(logger);
         }
 
@@ -174,13 +217,22 @@ namespace Mechanical3.MVVM
 
         private static FilePath[] GetCurrentLogFiles( IFileSystem fileSystem, FilePath directoryPath )
         {
-            return fileSystem
-                .GetPaths(directoryPath) // get all paths from the directory
-                .Where(p => !p.IsDirectory && string.Equals(p.Extension, ".json", StringComparison.OrdinalIgnoreCase)) // keep only log files
-                .Select(p => Tuple.Create(p, ParseLogFileName(p))) // get the creation date from the file name
-                .OrderBy(t => t.Item2) // order by creation date (ascending)
-                .Select(t => t.Item1)
-                .ToArray();
+            if( directoryPath.NullReference()
+             || fileSystem.Exists(directoryPath) )
+            {
+                return fileSystem
+                    .GetPaths(directoryPath) // get all paths from the directory
+                    .Where(p => !p.IsDirectory && string.Equals(p.Extension, ".json", StringComparison.OrdinalIgnoreCase)) // keep only log files
+                    .Select(p => Tuple.Create(p, ParseLogFileName(p))) // get the creation date from the file name
+                    .OrderBy(t => t.Item2) // order by creation date (ascending)
+                    .Select(t => t.Item1)
+                    .ToArray();
+            }
+            else
+            {
+                // the directory does not exist
+                return new FilePath[0];
+            }
         }
 
         #endregion
