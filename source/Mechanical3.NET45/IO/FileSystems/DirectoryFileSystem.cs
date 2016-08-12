@@ -7,6 +7,7 @@ namespace Mechanical3.IO.FileSystems
 {
     /// <summary>
     /// Wraps the specified host directory as an abstract file system.
+    /// Does not create the root directory until the first write operation.
     /// </summary>
     public class DirectoryFileSystem : IFileSystem
     {
@@ -187,9 +188,15 @@ namespace Mechanical3.IO.FileSystems
                  && !directoryPath.IsDirectory )
                     throw new ArgumentException("Invalid directory path!").StoreFileLine();
 
-                if( directoryPath.NotNullReference()
-                 && !Directory.Exists(this.ToFullHostPath(directoryPath)) )
-                    throw new FileNotFoundException().StoreFileLine(); // NOTE: a DirectoryNotFound exception would be nicer, but unfortunately it is not supported by the portable library
+                string hostDirPath = this.ToFullHostPath(directoryPath);
+                if( !Directory.Exists(hostDirPath) )
+                {
+                    // it's OK for the root directory to not exist, but not for others
+                    if( directoryPath.NullReference() )
+                        return new FilePath[0];
+                    else
+                        throw new FileNotFoundException().StoreFileLine(); // NOTE: a DirectoryNotFound exception would be nicer, but unfortunately it is not supported by the portable library
+                }
 
                 var list = new List<FilePath>();
                 this.AddNames(list, directoryPath, path => Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly), getsDirectories: false);
@@ -250,7 +257,7 @@ namespace Mechanical3.IO.FileSystems
                     throw new ArgumentException("Invalid file path!").StoreFileLine();
 
                 var fullHostPath = this.ToFullHostPath(filePath);
-                return new FileInfo(fullHostPath).Length;
+                return new FileInfo(fullHostPath).Length; // the ctor. always works, but Length may throw a FileNotFoundException
             }
             catch( Exception ex )
             {
