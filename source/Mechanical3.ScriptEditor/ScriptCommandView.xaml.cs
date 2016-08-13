@@ -124,13 +124,21 @@ namespace Mechanical3.ScriptEditor
                     control = new TextBlock() { Text = $"Unknwon type: {parameter.GetType().FullName}" };
                 }
 
+                // insert vertical separator
+                if( this.scriptCommandParametersGrid.RowDefinitions.Count != 0 )
+                {
+                    this.scriptCommandParametersGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(pixels: 4) });
+                    ++rowIndex;
+                }
+
+                // add to generated controls to grid
                 this.scriptCommandParametersGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                 this.scriptCommandParametersGrid.Children.Add(label);
                 Grid.SetRow(label, rowIndex);
                 Grid.SetColumn(label, 0);
                 this.scriptCommandParametersGrid.Children.Add(control);
                 Grid.SetRow(control, rowIndex);
-                Grid.SetColumn(control, 1);
+                Grid.SetColumn(control, 2);
                 ++rowIndex;
             }
         }
@@ -141,20 +149,15 @@ namespace Mechanical3.ScriptEditor
         {
             private readonly ComboBox comboBox;
             private readonly ScriptCommandParameter.MultipleChoice parameter;
-            private ListBox listBox;
+            private readonly ListBox listBox;
 
             internal MultipleChoiceSelectionHandler( ComboBox ctrl, ScriptCommandParameter.MultipleChoice p )
             {
                 this.comboBox = ctrl;
                 this.parameter = p;
 
-                this.comboBox.Loaded += OnComboBox_Loaded;
-            }
-
-            private void OnComboBox_Loaded( object sender, RoutedEventArgs e )
-            {
-                this.comboBox.Loaded -= OnComboBox_Loaded;
-                this.listBox = ((ListBox)this.comboBox.Template.FindName("lstBox", this.comboBox)); // null before Loaded event
+                this.comboBox.ApplyTemplate();
+                this.listBox = ((ListBox)this.comboBox.Template.FindName("lstBox", this.comboBox)); // null before ApplyTemplate
 
                 // add event handlers
                 this.listBox.SelectionChanged += this.OnMultiSelectListBox_SelectionChanged;

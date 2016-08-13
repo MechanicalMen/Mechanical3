@@ -141,6 +141,7 @@
             IsEnabled="{Binding IsCodeEditable, Converter={StaticResource notConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="6"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
         </Grid>

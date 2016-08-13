@@ -26,18 +26,14 @@ namespace Mechanical3.ScriptEditor
             : base()
         {
             this.propertyChange = new PropertyChangedActions();
-            this.propertyChange.Register(this, nameof(this.IsCodeEditable), this.UpdateGeneratedCode); // update when first switching views
+            this.propertyChange.Register(this, nameof(this.IsCodeEditable), this.UpdateGeneratedCode);
             this.propertyChange.Register(
                 this,
                 new string[] {
                     nameof(this.ScriptCommand),
                     nameof(this.ScriptCommand.GeneratedCode)
                 },
-                () =>
-                {
-                    if( !this.IsCodeEditable )
-                        this.UpdateGeneratedCode(); // update when parameters changed, and not currently editable
-                });
+                this.UpdateGeneratedCode);
             this.propertyChange.Register(this, nameof(this.ScriptCommand), () => this.RaisePropertyChanged(nameof(this.IsCodeEditable)));
 
             this.scriptEditorVM = new ScriptEditorViewModel();
@@ -90,7 +86,8 @@ namespace Mechanical3.ScriptEditor
 
         private void UpdateGeneratedCode()
         {
-            this.ScriptEditorViewModel.Code = this.ScriptCommand?.GeneratedCode;
+            if( !this.IsCodeEditable )
+                this.ScriptEditorViewModel.Code = this.ScriptCommand?.GeneratedCode;
         }
 
         #endregion
