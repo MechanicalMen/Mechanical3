@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using Mechanical3.Misc;
 
 namespace Mechanical3.Core
 {
@@ -60,6 +61,21 @@ namespace Mechanical3.Core
                 throw new ArgumentNullException(nameof(culture)).StoreFileLine();
 
             return IsMatch(text, 0, text.Length, pattern, 0, pattern.Length, culture.CompareInfo, options);
+        }
+
+        /// <summary>
+        /// Indicates whether the specified pattern matches the specified input string.
+        /// </summary>
+        /// <param name="text">The string to search for a match.</param>
+        /// <param name="pattern">The string pattern to match.</param>
+        /// <param name="localizedComparer">The <see cref="LocalizedStringComparer"/> to use.</param>
+        /// <returns><c>true</c> if the pattern matched the input string; otherwise, <c>false</c>.</returns>
+        public static bool IsMatch( string text, string pattern, LocalizedStringComparer localizedComparer )
+        {
+            if( localizedComparer.NullReference() )
+                throw new ArgumentNullException(nameof(localizedComparer)).StoreFileLine();
+
+            return IsMatch(text, 0, text.Length, pattern, 0, pattern.Length, localizedComparer.CompareInfo, localizedComparer.CompareOptions);
         }
 
         private static bool IsMatch( string text, int textStartIndex, int textLength, string pattern, int patternStartIndex, int patternLength, CompareInfo compareInfo, CompareOptions compareOptions )
