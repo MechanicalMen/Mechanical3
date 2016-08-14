@@ -114,7 +114,7 @@ namespace Mechanical3.IO.FileSystems
 
         private static void OverwriteOldBackups( IFileSystem fileSystem, FilePath filePath, int maxBackupNum )
         {
-            for( int i = 1; i < maxBackupNum; ++i )
+            for( int i = maxBackupNum - 1; i > 0; --i )
             {
                 Overwrite(
                     fileSystem,
