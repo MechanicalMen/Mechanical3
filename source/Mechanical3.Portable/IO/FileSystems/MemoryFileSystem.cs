@@ -329,10 +329,7 @@ namespace Mechanical3.IO.FileSystems
         {
             this.ThrowIfDisposed();
 
-            if( path.NullReference() )
-                throw new ArgumentNullException(nameof(path)).StoreFileLine();
-
-            return path.ToString();
+            return path?.ToString();
         }
 
         #endregion
