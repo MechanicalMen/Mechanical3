@@ -57,6 +57,7 @@
     <Compile Include="DataStores\Json\JsonFileFormatWriter.cs" />
     <Compile Include="IO\FileSystems\CommonDesktopFileSystems.cs" />
     <Compile Include="IO\FileSystems\DirectoryFileSystem.cs" />
+    <Compile Include="Loggers\ConsoleLogger.cs" />
     <Compile Include="Misc\ConsoleEventQueueUIHandler.cs" />
     <Compile Include="Misc\ThreadSynchronizationContextUIHandler.cs" />
     <Compile Include="MVVM\WpfHelper.cs" />

@@ -175,6 +175,18 @@ namespace Mechanical3.MVVM
         /// <param name="directoryPath">The directory to put the log files in; or <c>null</c> for the root of the <paramref name="fileSystem"/>.</param>
         public static void CreateAndUseNewJsonLogFile( IFileSystem fileSystem, int maxLogFileCount, FilePath directoryPath = null )
         {
+            Log.SetLogger(CreateNewJsonLogFile(fileSystem, maxLogFileCount, directoryPath));
+        }
+
+        /// <summary>
+        /// Creates and returns a new log file in the specified directory.
+        /// </summary>
+        /// <param name="fileSystem">The <see cref="IFileSystem"/> to use.</param>
+        /// <param name="maxLogFileCount">The maximum number of log files allowed. If there are more, the oldest will be removed.</param>
+        /// <param name="directoryPath">The directory to put the log files in; or <c>null</c> for the root of the <paramref name="fileSystem"/>.</param>
+        /// <returns>The new logger created.</returns>
+        public static DataStoreTextLogger CreateNewJsonLogFile( IFileSystem fileSystem, int maxLogFileCount, FilePath directoryPath = null )
+        {
             if( fileSystem.NullReference() )
                 throw new ArgumentNullException(nameof(fileSystem)).StoreFileLine();
 
@@ -196,9 +208,8 @@ namespace Mechanical3.MVVM
                 directoryPath.NullReference() ? newFilePath : directoryPath + newFilePath,
                 overwriteIfExists: true);
 
-            // create and use logger
-            var logger = new DataStoreTextLogger(new DataStoreTextWriter(JsonFileFormatFactory.Default.CreateWriter(stream)));
-            Log.SetLogger(logger);
+            // create logger
+            return new DataStoreTextLogger(new DataStoreTextWriter(JsonFileFormatFactory.Default.CreateWriter(stream)));
         }
 
         private static string GetNewLogFileNameWithoutExtension()

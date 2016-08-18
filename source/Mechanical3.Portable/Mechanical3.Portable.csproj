@@ -91,6 +91,7 @@
     <Compile Include="IO\FileSystems\MemoryFileSystem.cs" />
     <Compile Include="IO\FileSystems\MountFileSystem.cs" />
     <Compile Include="IO\FileSystems\SemiThreadSafeMemoryFileSystemReader.cs" />
+    <Compile Include="Loggers\AggregateLogger.cs" />
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="Loggers\LogEntry.cs" />
     <Compile Include="Loggers\LogLevel.cs" />
