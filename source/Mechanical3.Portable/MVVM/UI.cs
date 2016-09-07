@@ -40,7 +40,7 @@ namespace Mechanical3.MVVM
         private static IUIThreadHandler GetUIHandler()
         {
             if( uiThreadHandler.NullReference() )
-                throw new InvalidOperationException("UI not initialized!").StoreFileLine();
+                throw new InvalidOperationException("UI not initialized! (Call Initialize, or use the attached property of WpfDesigner.)").StoreFileLine();
 
             return uiThreadHandler;
         }

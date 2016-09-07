@@ -290,10 +290,21 @@ namespace Mechanical3.IO.FileSystems
         #region Constructors
 
         /// <summary>
+        /// Copies the current contents of the specified <see cref="IFileSystemReader"/>
+        /// into a new <see cref="SemiThreadSafeMemoryFileSystemReader"/> instance.
+        /// </summary>
+        /// <param name="readerToCopy">The abstract file system to copy the current contents of, into memory.</param>
+        /// <returns>A new <see cref="SemiThreadSafeMemoryFileSystemReader"/> instance.</returns>
+        public static SemiThreadSafeMemoryFileSystemReader CopyFrom( IFileSystemReader readerToCopy )
+        {
+            return new SemiThreadSafeMemoryFileSystemReader(readerToCopy);
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SemiThreadSafeMemoryFileSystemReader"/> class.
         /// </summary>
         /// <param name="readerToCopy">The abstract file system to copy the current contents of, into memory.</param>
-        public SemiThreadSafeMemoryFileSystemReader( IFileSystemReader readerToCopy )
+        private SemiThreadSafeMemoryFileSystemReader( IFileSystemReader readerToCopy )
         {
             this.rootFolderEntries = readerToCopy.GetPaths();
 

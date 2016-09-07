@@ -72,6 +72,7 @@ namespace Mechanical3.ScriptEditor
             {
                 var label = new TextBlock();
                 label.Text = parameter.DisplayName;
+                label.VerticalAlignment = VerticalAlignment.Center;
 
                 UIElement control;
                 if( parameter is ScriptCommandParameter.Text )
