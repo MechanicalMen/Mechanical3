@@ -6,6 +6,7 @@ using Mechanical3.Core;
 
 namespace Mechanical3.MVVM
 {
+#pragma warning disable SA1600 // ElementsMustBeDocumented
     internal class PropertyChangedListenerCollection : DisposableObject
     {
         #region Private Fields
@@ -185,4 +186,5 @@ namespace Mechanical3.MVVM
 
         #endregion
     }
+#pragma warning restore SA1600 // ElementsMustBeDocumented
 }

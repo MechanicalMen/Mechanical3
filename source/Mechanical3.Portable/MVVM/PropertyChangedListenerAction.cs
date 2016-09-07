@@ -5,6 +5,7 @@ using Mechanical3.Misc;
 
 namespace Mechanical3.MVVM
 {
+#pragma warning disable SA1600 // ElementsMustBeDocumented
     internal class PropertyChangedListenerAction : IPropertyChangedListener
     {
         private readonly Action action;
@@ -32,4 +33,5 @@ namespace Mechanical3.MVVM
             }
         }
     }
+#pragma warning restore SA1600 // ElementsMustBeDocumented
 }
