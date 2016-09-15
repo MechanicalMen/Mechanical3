@@ -87,6 +87,7 @@
     <Compile Include="IO\FileSystems\IFileSystemBase.cs" />
     <Compile Include="IO\FileSystems\IFileSystemReader.cs" />
     <Compile Include="IO\FileSystems\IFileSystemWriter.cs" />
+    <Compile Include="IO\FileSystems\StreamTrackingFileSystemBase.cs" />
     <Compile Include="IO\FileSystems\SubdirectoryFileSystem.cs" />
     <Compile Include="IO\FileSystems\MemoryFileSystem.cs" />
     <Compile Include="IO\FileSystems\MountFileSystem.cs" />
