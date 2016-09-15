@@ -75,10 +75,21 @@ namespace Mechanical3.MVVM
             if( value != GetInitializeDesignerMechanical3(element) )
             {
                 element.SetValue(InitializeDesignerMechanical3Property, value);
+                Mechanical3DesignerInitialization();
+            }
+        }
 
-                // assume attached properties are set from the UI thread
-                if( IsInDesigner
-                 && uiThreadHandler.NullReference() )
+        /// <summary>
+        /// If invoked from the Designer, for the first time, then it does basic <see cref="MechanicalApp"/> initialization.
+        /// Does not do anything otherwise.
+        /// </summary>
+        public static void Mechanical3DesignerInitialization()
+        {
+            if( IsInDesigner
+             && uiThreadHandler.NullReference() )
+            {
+                // make sure the initialization code is executed on the UI thread
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     if( Interlocked.CompareExchange(ref uiThreadHandler, ThreadSynchronizationContextUIHandler.FromCurrent(), comparand: null).NullReference() )
                     {
@@ -93,7 +104,7 @@ namespace Mechanical3.MVVM
                         exceptionReporter = new ExceptionReporter();
                         MechanicalApp.EventQueue.Subscribe(exceptionReporter);
                     }
-                }
+                });
             }
         }
     }
