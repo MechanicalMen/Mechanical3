@@ -6,9 +6,10 @@ using Mechanical3.Core;
 namespace Mechanical3.IO.FileSystems
 {
     /// <summary>
-    /// Notifies inheritors when a stream is closed.
+    /// Notifies implementers when a stream
+    /// (created by the implementing abstract file system) is being closed.
     /// </summary>
-    public abstract class StreamTrackingFileSystemBase : IFileSystem
+    public abstract class StreamTrackingFileSystemBase : DisposableObject, IFileSystem
     {
         #region EchoStream
 
@@ -19,10 +20,10 @@ namespace Mechanical3.IO.FileSystems
         {
             private readonly StreamTrackingFileSystemBase fileSystem;
             private readonly FilePath filePath;
-            private readonly bool? isReading;
+            private readonly StreamSource streamSource;
             private Stream wrappedStream;
 
-            internal EchoStream( StreamTrackingFileSystemBase fs, Stream stream, FilePath path, bool? read )
+            internal EchoStream( StreamTrackingFileSystemBase fs, Stream stream, FilePath path, StreamSource source )
             {
                 if( fs.NullReference() )
                     throw new ArgumentNullException(nameof(fs)).StoreFileLine();
@@ -32,19 +33,22 @@ namespace Mechanical3.IO.FileSystems
 
                 if( path.NullReference()
                  || path.IsDirectory )
-                    throw NamedArgumentException.Store(nameof(path), path?.ToString());
+                    throw NamedArgumentException.Store(nameof(path), path);
+
+                if( !Enum.IsDefined(typeof(StreamSource), source) )
+                    throw NamedArgumentException.Store(nameof(source), source);
 
                 if( !stream.CanRead
-                 && (!read.HasValue || read.Value) ) // ReadWrite or Read
-                    throw new InvalidOperationException("Stream must be readable!").StoreFileLine();
+                 && (source == StreamSource.ReadFile || source == StreamSource.ReadWriteFile) )
+                    throw new InvalidOperationException("Stream must be readable!").Store(nameof(source), source);
 
                 if( !stream.CanWrite
-                 && (!read.HasValue || !read.Value) ) // ReadWrite or Write
-                    throw new InvalidOperationException("Stream must be writable!").StoreFileLine();
+                 && (source == StreamSource.CreateFile_Result || source == StreamSource.ReadWriteFile) )
+                    throw new InvalidOperationException("Stream must be writable!").Store(nameof(source), source);
 
                 this.fileSystem = fs;
                 this.filePath = path;
-                this.isReading = read;
+                this.streamSource = source;
                 this.wrappedStream = stream;
             }
 
@@ -61,7 +65,7 @@ namespace Mechanical3.IO.FileSystems
                             // the wrapped stream has not yet been disposed of
                             try
                             {
-                                this.fileSystem.OnStreamClosing(wrappee, this.filePath, this.isReading);
+                                this.fileSystem.OnStreamClosing(wrappee, this.filePath, this.streamSource);
                             }
                             finally
                             {
@@ -72,7 +76,9 @@ namespace Mechanical3.IO.FileSystems
                     }
                     else
                     {
-                        this.fileSystem.OnStreamClosing(null, null, this.isReading);
+                        // NOTE: Since this was called from the finalizer, managed fields may or may not be null.
+                        //       At least this way it is consistent, and detectable.
+                        this.fileSystem.OnStreamClosing(null, null, this.streamSource);
                     }
                 }
                 finally
@@ -149,6 +155,31 @@ namespace Mechanical3.IO.FileSystems
 
         #endregion
 
+        #region StreamSource
+
+        /// <summary>
+        /// Specifies which method invocation created the stream.
+        /// </summary>
+        protected enum StreamSource
+        {
+            /// <summary>
+            /// The stream was created by <see cref="IFileSystemReader.ReadFile"/>.
+            /// </summary>
+            ReadFile,
+
+            /// <summary>
+            /// The stream was created by <see cref="IFileSystemWriter.CreateFile(FilePath, bool)"/>.
+            /// </summary>
+            CreateFile_Result,
+
+            /// <summary>
+            /// The stream was created by <see cref="IFileSystem.ReadWriteFile"/>.
+            /// </summary>
+            ReadWriteFile
+        }
+
+        #endregion
+
         #region Protected Abstract Methods
 
         /// <summary>
@@ -175,11 +206,13 @@ namespace Mechanical3.IO.FileSystems
 
         /// <summary>
         /// Invoked before the file stream is closed.
+        /// This method is NOT invoked for <see cref="IFileSystemWriter.CreateFile(FilePath, bool, Stream)"/>,
+        /// since the only stream available there, is not one created by this file system.
         /// </summary>
         /// <param name="stream">The stream being closed (or <c>null</c> if the method was called from the stream's finalizer).</param>
         /// <param name="filePath">The file path the stream was opened with (or <c>null</c> if the method was called from the stream's finalizer).</param>
-        /// <param name="read"><c>true</c> if the <paramref name="stream"/> was returned by <see cref="OpenRead"/>, <c>false</c> if it was returned by <see cref="OpenWrite"/>, or <c>null</c> if it was returned by <see cref="OpenReadWrite"/>.</param>
-        protected abstract void OnStreamClosing( Stream stream, FilePath filePath, bool? read );
+        /// <param name="source">Determines which method created the <paramref name="stream"/>.</param>
+        protected abstract void OnStreamClosing( Stream stream, FilePath filePath, StreamSource source );
 
         #endregion
 
@@ -217,7 +250,7 @@ namespace Mechanical3.IO.FileSystems
         /// <returns>A <see cref="Stream"/> representing the file opened.</returns>
         public Stream ReadFile( FilePath filePath )
         {
-            return new EchoStream(this, this.OpenRead(filePath), filePath, read: true);
+            return new EchoStream(this, this.OpenRead(filePath), filePath, StreamSource.ReadFile);
         }
 
 
@@ -258,8 +291,17 @@ namespace Mechanical3.IO.FileSystems
         /// <returns>A <see cref="Stream"/> representing the file.</returns>
         public Stream CreateFile( FilePath filePath, bool overwriteIfExists )
         {
-            return new EchoStream(this, this.OpenWrite(filePath, overwriteIfExists), filePath, read: false);
+            return new EchoStream(this, this.OpenWrite(filePath, overwriteIfExists), filePath, StreamSource.CreateFile_Result);
         }
+
+        /// <summary>
+        /// Creates a new file from the content of the specified stream.
+        /// The stream being copied will NOT be closed at the end of the method.
+        /// </summary>
+        /// <param name="filePath">The path specifying the file to create.</param>
+        /// <param name="overwriteIfExists"><c>true</c> to overwrite the file if it already exists; or <c>false</c> to throw an exception.</param>
+        /// <param name="streamToCopy">The <see cref="Stream"/> to copy the content of (from the current position, until the end of the stream).</param>
+        public abstract void CreateFile( FilePath filePath, bool overwriteIfExists, Stream streamToCopy );
 
         #endregion
 
@@ -278,7 +320,7 @@ namespace Mechanical3.IO.FileSystems
         /// <returns>A <see cref="Stream"/> representing the file opened.</returns>
         public Stream ReadWriteFile( FilePath filePath )
         {
-            return new EchoStream(this, this.OpenReadWrite(filePath), filePath, read: null);
+            return new EchoStream(this, this.OpenReadWrite(filePath), filePath, StreamSource.ReadWriteFile);
         }
 
         #endregion

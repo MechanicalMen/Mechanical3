@@ -26,6 +26,15 @@ namespace Mechanical3.IO.FileSystems
         /// <param name="overwriteIfExists"><c>true</c> to overwrite the file if it already exists; or <c>false</c> to throw an exception.</param>
         /// <returns>A <see cref="Stream"/> representing the file.</returns>
         Stream CreateFile( FilePath filePath, bool overwriteIfExists );
+
+        /// <summary>
+        /// Creates a new file from the content of the specified stream.
+        /// The stream being copied will NOT be closed at the end of the method.
+        /// </summary>
+        /// <param name="filePath">The path specifying the file to create.</param>
+        /// <param name="overwriteIfExists"><c>true</c> to overwrite the file if it already exists; or <c>false</c> to throw an exception.</param>
+        /// <param name="streamToCopy">The <see cref="Stream"/> to copy the content of (from the current position, until the end of the stream).</param>
+        void CreateFile( FilePath filePath, bool overwriteIfExists, Stream streamToCopy );
     }
 
     /// <content>

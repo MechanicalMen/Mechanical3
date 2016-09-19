@@ -190,6 +190,22 @@ namespace Mechanical3.IO.FileSystems
             return this.fileSystem.CreateFile(this.ToParentPath(filePath), overwriteIfExists);
         }
 
+        /// <summary>
+        /// Creates a new file from the content of the specified stream.
+        /// The stream being copied will NOT be closed at the end of the method.
+        /// </summary>
+        /// <param name="filePath">The path specifying the file to create.</param>
+        /// <param name="overwriteIfExists"><c>true</c> to overwrite the file if it already exists; or <c>false</c> to throw an exception.</param>
+        /// <param name="streamToCopy">The <see cref="Stream"/> to copy the content of (from the current position, until the end of the stream).</param>
+        public void CreateFile( FilePath filePath, bool overwriteIfExists, Stream streamToCopy )
+        {
+            if( filePath.NullReference()
+             || filePath.IsDirectory )
+                throw new ArgumentException("Invalid file path!").StoreFileLine();
+
+            this.fileSystem.CreateFile(this.ToParentPath(filePath), overwriteIfExists, streamToCopy);
+        }
+
         #endregion
 
         #region IFileSystem
