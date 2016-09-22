@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading;
 using Mechanical3.Core;
 
 namespace Mechanical3.IO.FileSystems
 {
     /// <summary>
     /// Implements <see cref="IFileSystem"/>, by keeping all data in memory.
-    /// Neither the file system, nor the streams returned are thread-safe.
-    /// Use Stream.Synchronized for the latter.
+    /// All operations should be thread-safe, but all streams MUST
+    /// be closed manually.
     /// </summary>
     public class MemoryFileSystem : DisposableObject, IFileSystem
     {
@@ -18,6 +18,9 @@ namespace Mechanical3.IO.FileSystems
                  Therefore we wrap them, and only dispose them, when the
                  file system is released.
          */
+
+        //// NOTE: Access to entries and each file must be synchronous.
+        ////       This still makes it possible to have multiple streams open at the same time.
 
         #region EchoStream
 
@@ -169,7 +172,11 @@ namespace Mechanical3.IO.FileSystems
 
                 //// shared cleanup logic
                 //// (unmanaged resources)
-                this.isOpen = false;
+                if( this.isOpen )
+                {
+                    Monitor.Exit(this);
+                    this.isOpen = false;
+                }
 
                 base.OnDispose(disposing);
             }
@@ -184,7 +191,8 @@ namespace Mechanical3.IO.FileSystems
                 {
                     this.ThrowIfDisposed();
 
-                    return this.isOpen;
+                    lock( this )
+                        return this.isOpen;
                 }
             }
 
@@ -194,11 +202,14 @@ namespace Mechanical3.IO.FileSystems
                 {
                     this.ThrowIfDisposed();
 
-                    if( this.path.IsDirectory
-                     || this.stream.NullReference() )
-                        throw new InvalidOperationException("Directories have no length!").Store(nameof(this.path), this.path);
+                    lock( this )
+                    {
+                        if( this.path.IsDirectory
+                         || this.stream.NullReference() )
+                            throw new InvalidOperationException("Directories have no length!").Store(nameof(this.path), this.path);
 
-                    return this.stream.Length;
+                        return this.stream.Length;
+                    }
                 }
             }
 
@@ -208,19 +219,28 @@ namespace Mechanical3.IO.FileSystems
                 {
                     this.ThrowIfDisposed();
 
-                    if( this.path.IsDirectory )
-                        throw new InvalidOperationException("Only files can have streams!").StoreFileLine();
+                    Monitor.Enter(this); // start locking...
+                    try
+                    {
+                        if( this.path.IsDirectory )
+                            throw new InvalidOperationException("Only files can have streams!").StoreFileLine();
 
-                    if( this.isOpen )
-                        throw new IOException("File already open!").StoreFileLine();
+                        if( this.isOpen )
+                            throw new IOException("File already open!").StoreFileLine();
 
-                    if( this.stream.NullReference() )
-                        this.stream = new MemoryStream();
-                    else
-                        this.stream.Position = 0;
+                        if( this.stream.NullReference() )
+                            this.stream = new MemoryStream();
+                        else
+                            this.stream.Position = 0;
 
-                    this.isOpen = true;
-                    return EchoStream.WrapOpenFile(this.stream, this);
+                        this.isOpen = true;
+                        return EchoStream.WrapOpenFile(this.stream, this);
+                    }
+                    catch
+                    {
+                        Monitor.Exit(this); // ... stop locking, if the file could not be opened
+                        throw;
+                    }
                 }
                 catch( Exception ex )
                 {
@@ -242,6 +262,7 @@ namespace Mechanical3.IO.FileSystems
                         throw new InvalidOperationException("File already closed!").StoreFileLine();
 
                     this.isOpen = false;
+                    Monitor.Exit(this); // ... or stop locking once the file is closed.
                 }
                 catch( Exception ex )
                 {
@@ -286,12 +307,15 @@ namespace Mechanical3.IO.FileSystems
                 //// dispose-only (i.e. non-finalizable) logic
                 //// (managed, disposable resources you own)
 
-                if( this.entries.Count != 0 )
+                lock( this.entries )
                 {
-                    foreach( var entry in this.entries.Values )
-                        entry.Dispose();
+                    if( this.entries.Count != 0 )
+                    {
+                        foreach( var entry in this.entries.Values )
+                            entry.Dispose();
 
-                    this.entries.Clear();
+                        this.entries.Clear();
+                    }
                 }
             }
 
@@ -350,18 +374,21 @@ namespace Mechanical3.IO.FileSystems
                  && !directoryPath.IsDirectory )
                     throw new ArgumentException("Invalid directory path!").StoreFileLine();
 
-                if( directoryPath.NotNullReference()
-                 && !this.entries.ContainsKey(directoryPath) )
-                    throw new FileNotFoundException().StoreFileLine(); // NOTE: a DirectoryNotFound exception would be nicer, but unfortunately it is not supported by the portable library
-
-                var results = new List<FilePath>();
-                foreach( var path in this.entries.Keys )
+                lock( this.entries )
                 {
-                    if( (directoryPath.NullReference() && !path.HasParent)
-                     || (directoryPath.NotNullReference() && directoryPath.IsParentOf(path)) )
-                        results.Add(path);
+                    if( directoryPath.NotNullReference()
+                     && !this.entries.ContainsKey(directoryPath) )
+                        throw new FileNotFoundException().StoreFileLine(); // NOTE: a DirectoryNotFound exception would be nicer, but unfortunately it is not supported by the portable library
+
+                    var results = new List<FilePath>();
+                    foreach( var path in this.entries.Keys )
+                    {
+                        if( (directoryPath.NullReference() && !path.HasParent)
+                         || (directoryPath.NotNullReference() && directoryPath.IsParentOf(path)) )
+                            results.Add(path);
+                    }
+                    return results.ToArray();
                 }
-                return results.ToArray();
             }
             catch( Exception ex )
             {
@@ -385,11 +412,14 @@ namespace Mechanical3.IO.FileSystems
                  || filePath.IsDirectory )
                     throw new ArgumentException("Invalid file path!").StoreFileLine();
 
-                Entry entry;
-                if( !this.entries.TryGetValue(filePath, out entry) )
-                    throw new FileNotFoundException().StoreFileLine();
+                lock( this.entries )
+                {
+                    Entry entry;
+                    if( !this.entries.TryGetValue(filePath, out entry) )
+                        throw new FileNotFoundException().StoreFileLine();
 
-                return entry.OpenFile(); // throws if file is already open
+                    return entry.OpenFile(); // throws if file is already open
+                }
             }
             catch( Exception ex )
             {
@@ -428,11 +458,14 @@ namespace Mechanical3.IO.FileSystems
                  || filePath.IsDirectory )
                     throw new ArgumentException("Invalid file path!").StoreFileLine();
 
-                Entry entry;
-                if( !this.entries.TryGetValue(filePath, out entry) )
-                    throw new FileNotFoundException().StoreFileLine();
+                lock( this.entries )
+                {
+                    Entry entry;
+                    if( !this.entries.TryGetValue(filePath, out entry) )
+                        throw new FileNotFoundException().StoreFileLine();
 
-                return entry.Length;
+                    return entry.Length;
+                }
             }
             catch( Exception ex )
             {
@@ -459,16 +492,19 @@ namespace Mechanical3.IO.FileSystems
                  || !directoryPath.IsDirectory )
                     throw new ArgumentException("Invalid directory path!").StoreFileLine();
 
-                if( this.entries.ContainsKey(directoryPath.ToFilePath()) )
-                    throw new IOException("A file with the same name already exists!").StoreFileLine();
+                lock( this.entries )
+                {
+                    if( this.entries.ContainsKey(directoryPath.ToFilePath()) )
+                        throw new IOException("A file with the same name already exists!").StoreFileLine();
 
-                // add parents, if they are missing
-                if( directoryPath.HasParent )
-                    this.CreateDirectory(directoryPath.Parent);
+                    // add parents, if they are missing
+                    if( directoryPath.HasParent )
+                        this.CreateDirectory(directoryPath.Parent);
 
-                // add directory
-                if( !this.entries.ContainsKey(directoryPath) )
-                    this.entries.Add(directoryPath, new Entry(directoryPath));
+                    // add directory
+                    if( !this.entries.ContainsKey(directoryPath) )
+                        this.entries.Add(directoryPath, new Entry(directoryPath));
+                }
             }
             catch( Exception ex )
             {
@@ -490,27 +526,45 @@ namespace Mechanical3.IO.FileSystems
                 if( path.NullReference() )
                     throw new ArgumentException().StoreFileLine();
 
-                // get the entry
-                Entry entry;
-                if( !this.entries.TryGetValue(path, out entry) )
-                    return;
-
-                // if this is a directory, remove all it's descendants as well
-                if( path.IsDirectory )
+                lock( this.entries )
                 {
-                    foreach( var pair in this.entries.ToArray() )
+                    List<KeyValuePair<FilePath, Entry>> entriesToDelete = null;
+
+                    // get the entry
+                    Entry entry;
+                    if( !this.entries.TryGetValue(path, out entry) )
                     {
-                        if( path.IsAncestorOf(pair.Key) )
+                        return;
+                    }
+                    else
+                    {
+                        entriesToDelete = new List<KeyValuePair<FilePath, Entry>>();
+                        entriesToDelete.Add(new KeyValuePair<FilePath, Entry>(path, entry));
+                    }
+
+                    // if this is a directory, remove all it's descendants as well
+                    if( path.IsDirectory )
+                    {
+                        foreach( var pair in this.entries )
                         {
-                            this.entries.Remove(pair.Key);
-                            pair.Value.Dispose();
+                            if( path.IsAncestorOf(pair.Key) )
+                                entriesToDelete.Add(pair);
                         }
                     }
-                }
 
-                // remove the file or directory
-                this.entries.Remove(path);
-                entry.Dispose();
+                    // remove all entries
+                    foreach( var pair in entriesToDelete )
+                        this.entries.Remove(pair.Key);
+
+                    // dispose of entries
+                    if( entriesToDelete.NotNullReference() )
+                    {
+                        foreach( var pair in entriesToDelete )
+                            pair.Value.Dispose();
+
+                        entriesToDelete.Clear();
+                    }
+                }
             }
             catch( Exception ex )
             {
@@ -535,28 +589,33 @@ namespace Mechanical3.IO.FileSystems
                  || filePath.IsDirectory )
                     throw new ArgumentException("Invalid file path!").StoreFileLine();
 
-                Entry entry;
-                if( this.entries.TryGetValue(filePath, out entry) )
+                Stream stream;
+                lock( this.entries )
                 {
-                    // entry already exists
-                    if( !overwriteIfExists )
-                        throw new IOException("The file already exists!").StoreFileLine();
-                }
-                else
-                {
-                    //// create entry if it doesn't exist
+                    Entry entry;
+                    if( this.entries.TryGetValue(filePath, out entry) )
+                    {
+                        // entry already exists
+                        if( !overwriteIfExists )
+                            throw new IOException("The file already exists!").StoreFileLine();
+                    }
+                    else
+                    {
+                        //// create entry if it doesn't exist
 
-                    // create parent directory
-                    if( filePath.HasParent )
-                        this.CreateDirectory(filePath.Parent);
+                        // create parent directory
+                        if( filePath.HasParent )
+                            this.CreateDirectory(filePath.Parent);
 
-                    // add entry
-                    entry = new Entry(filePath);
-                    this.entries.Add(filePath, entry);
+                        // add entry
+                        entry = new Entry(filePath);
+                        this.entries.Add(filePath, entry);
+                    }
+
+                    stream = entry.OpenFile(); // throws if file is already open
                 }
 
                 // may or may not be a new entry
-                var stream = entry.OpenFile(); // throws if file is already open
                 stream.SetLength(0);
                 return stream;
             }
@@ -614,22 +673,25 @@ namespace Mechanical3.IO.FileSystems
                  || filePath.IsDirectory )
                     throw new ArgumentException("Invalid file path!").StoreFileLine();
 
-                Entry entry;
-                if( !this.entries.TryGetValue(filePath, out entry) )
+                lock( this.entries )
                 {
-                    //// create entry if it doesn't exist
+                    Entry entry;
+                    if( !this.entries.TryGetValue(filePath, out entry) )
+                    {
+                        //// create entry if it doesn't exist
 
-                    // create parent directory
-                    if( filePath.HasParent )
-                        this.CreateDirectory(filePath.Parent);
+                        // create parent directory
+                        if( filePath.HasParent )
+                            this.CreateDirectory(filePath.Parent);
 
-                    // add entry
-                    entry = new Entry(filePath);
-                    this.entries.Add(filePath, entry);
+                        // add entry
+                        entry = new Entry(filePath);
+                        this.entries.Add(filePath, entry);
+                    }
+
+                    // may or may not be a new entry
+                    return entry.OpenFile(); // throws if file is already open
                 }
-
-                // may or may not be a new entry
-                return entry.OpenFile(); // throws if file is already open
             }
             catch( Exception ex )
             {
