@@ -202,7 +202,7 @@ namespace Mechanical3.IO.FileSystems
                 }
             }
 
-            internal EchoStream OpenFile()
+            internal EchoStream OpenFile( bool alwaysCreateNew )
             {
                 try
                 {
@@ -218,6 +218,9 @@ namespace Mechanical3.IO.FileSystems
                         this.stream = new MemoryStream();
                     else
                         this.stream.Position = 0;
+
+                    if( alwaysCreateNew )
+                        this.stream.SetLength(0);
 
                     this.isOpen = true;
                     return EchoStream.WrapOpenFile(this.stream, this);
@@ -389,7 +392,7 @@ namespace Mechanical3.IO.FileSystems
                 if( !this.entries.TryGetValue(filePath, out entry) )
                     throw new FileNotFoundException().StoreFileLine();
 
-                return entry.OpenFile(); // throws if file is already open
+                return entry.OpenFile(alwaysCreateNew: false); // throws if file is already open
             }
             catch( Exception ex )
             {
@@ -556,7 +559,7 @@ namespace Mechanical3.IO.FileSystems
                 }
 
                 // may or may not be a new entry
-                var stream = entry.OpenFile(); // throws if file is already open
+                var stream = entry.OpenFile(alwaysCreateNew: true); // throws if file is already open
                 stream.SetLength(0);
                 return stream;
             }
@@ -629,7 +632,7 @@ namespace Mechanical3.IO.FileSystems
                 }
 
                 // may or may not be a new entry
-                return entry.OpenFile(); // throws if file is already open
+                return entry.OpenFile(alwaysCreateNew: false); // throws if file is already open
             }
             catch( Exception ex )
             {
