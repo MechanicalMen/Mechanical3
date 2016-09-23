@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-    xmlns:mvvm="clr-namespace:Mechanical3.MVVM;assembly=Mechanical3.Portable"
+    xmlns:mvvm="clr-namespace:Mechanical3.MVVM;assembly=Mechanical3.NET45"
     xmlns:swm="clr-namespace:System.Windows.Media;assembly=PresentationCore"
 
     mc:Ignorable="d" 

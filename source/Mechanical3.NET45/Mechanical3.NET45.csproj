@@ -60,6 +60,9 @@
     <Compile Include="Loggers\ConsoleLogger.cs" />
     <Compile Include="Misc\ConsoleEventQueueUIHandler.cs" />
     <Compile Include="Misc\ThreadSynchronizationContextUIHandler.cs" />
+    <Compile Include="MVVM\BoolToObjectConverter.cs" />
+    <Compile Include="MVVM\NotConverter.cs" />
+    <Compile Include="MVVM\SimpleConverterBase.cs" />
     <Compile Include="MVVM\WpfDesigner.cs" />
     <Compile Include="MVVM\WpfHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
