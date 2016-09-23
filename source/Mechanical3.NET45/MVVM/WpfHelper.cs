@@ -26,7 +26,7 @@ namespace Mechanical3.MVVM
         #endregion
 
         #region Window life-cycle handling
-
+#if !MONO
         /* Window life cycle:
          *  - constructor & initialization
          *  - ... work ...
@@ -88,7 +88,7 @@ namespace Mechanical3.MVVM
             lock( strongReferences )
                 strongReferences.Add(new WindowCloseHandler(window, eventQueue));
         }
-
+#endif
         #endregion
 
         #region AppDomain exceptions
@@ -135,7 +135,7 @@ namespace Mechanical3.MVVM
         #endregion
 
         #region Dispatcher exceptions
-
+#if !MONO
         private static bool dispatcherExceptionsHandled = false;
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace Mechanical3.MVVM
                 };
             }
         }
-
+#endif
         #endregion
 
         #region Simple logging
