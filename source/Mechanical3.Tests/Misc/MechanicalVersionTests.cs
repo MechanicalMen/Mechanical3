@@ -20,6 +20,36 @@ namespace Mechanical3.Tests.Misc
             var expectedDate = new DateTime(0, DateTimeKind.Utc);
             Assert.AreEqual(expectedDate.Ticks, version.LastBuildDate.Ticks);
             Assert.AreEqual(expectedDate.Kind, version.LastBuildDate.Kind);
+
+            Assert.Null(version.GitCommit);
+        }
+
+        [Test]
+        public static void GitCommitTests()
+        {
+            //// NOTE: the no git-commit option was already tested above
+
+            const string withGitCommitJSON = @"{
+  ""name"": ""Mechanical3 Unit Tests"",
+  ""version"": "" test  version   "",
+  ""totalBuildCount"": 1,
+  ""versionBuildCount"": 0,
+  ""lastBuildDate"": ""0001-01-01T00:00:00.0000000Z"",
+  ""gitCommit"": ""6692ba6f7f091fd687b0780a96375fbd4166acf5""
+}";
+            const string nullGitCommitJSON = @"{
+  ""name"": ""Mechanical3 Unit Tests"",
+  ""version"": "" test  version   "",
+  ""totalBuildCount"": 1,
+  ""versionBuildCount"": 0,
+  ""lastBuildDate"": ""0001-01-01T00:00:00.0000000Z"",
+  ""gitCommit"": null
+}";
+            var version = new MechanicalVersion(withGitCommitJSON);
+            Test.OrdinalEquals("6692ba6f7f091fd687b0780a96375fbd4166acf5", version.GitCommit);
+
+            version = new MechanicalVersion(nullGitCommitJSON);
+            Assert.Null(version.GitCommit);
         }
     }
 }

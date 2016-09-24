@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using LibGit2Sharp;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -10,44 +11,90 @@ namespace Mechanical3.IncrBuildNum
 {
     class Program
     {
-        /*
+        /* Version file format:
         {
             "name": "Mechanical3 (Portable)",
 	        "version": "1.2", // the informal version, independent of the assembly version
 	        "totalBuildCount": 123, // the total number of builds
 	        "versionBuildCount": 5, // the number of builds since the last version increase (set manually to 0 when changing "version")
 	        "lastBuildDate": "2015-12-05T11:47:44.8260740Z" // when the last build happened
+	        "gitCommit": "6692ba6f7f091fd687b0780a96375fbd4166acf5" // the currently checked out git commit ID
         }
         */
+
+        /* What it does:
+         * 
+         * Pre-Build Action (--pre-build):
+         *  - checks whether the version can be increased for the specified version file (true by default)
+         *  - increases the version if it is allowed
+         *  - marks the specified version file, to disallow further version increases to it
+         * 
+         * Post-Build Action (possibly only when it changes the generated output) (--post-build):
+         *  - leave the specified version file alone
+         *    (since changing the embedded version file, will necessarily change the generated project output)
+         *  - mark the specified version file to allow it's version to be increased
+         *    (this of course is not done in the version file)
+         */
 
         private static int Main( string[] args )
         {
             string originalJson = null;
             try
             {
-                // get file path
-                if( args.Length == 0 )
-                    throw new FileNotFoundException("No version file specified!");
+                // get command line arguments
+                if( args.Length != 2 )
+                    throw new ArgumentException("Exactly 2 arguments must be specified!");
 
-                var filePath = args[0];
-                if( !File.Exists(filePath) )
+                var versionFilePath = args[0];
+                if( !File.Exists(versionFilePath) )
                     throw new FileNotFoundException("Version file not found!");
 
-                // parse file
-                originalJson = File.ReadAllText(filePath);
-                var obj = JObject.Parse(originalJson);
+                bool isPreBuildAction;
+                if( string.Equals(args[1], "--pre-build", StringComparison.Ordinal) )
+                    isPreBuildAction = true;
+                else if( string.Equals(args[1], "--post-build", StringComparison.Ordinal) )
+                    isPreBuildAction = false;
+                else
+                    throw new ArgumentException($"Second parameter could not be recognized: \"{args[1]}\"");
 
-                // get previous values
-                var totalBuildCount = (int)obj["totalBuildCount"];
-                var versionBuildCount = (int)obj["versionBuildCount"];
+                if( isPreBuildAction )
+                {
+                    //// NOTE: this is a Pre-Build Action:
+                    ////       the embedded version file may be changed.
 
-                // set new values
-                obj["totalBuildCount"] = totalBuildCount + 1;
-                obj["versionBuildCount"] = versionBuildCount + 1;
-                obj["lastBuildDate"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+                    // parse file
+                    originalJson = File.ReadAllText(versionFilePath);
+                    var obj = JObject.Parse(originalJson);
 
-                // generate file contents
-                File.WriteAllText(filePath, obj.ToString(Formatting.Indented), Encoding.ASCII);
+                    // check if version numbers can be increased
+                    bool increasingWasAllowed;
+                    VersionFileDatabase.SetCanIncreaseVersion(versionFilePath, false, out increasingWasAllowed);
+                    if( increasingWasAllowed )
+                    {
+                        var totalBuildCount = (int)obj["totalBuildCount"];
+                        var versionBuildCount = (int)obj["versionBuildCount"];
+                        obj["totalBuildCount"] = totalBuildCount + 1;
+                        obj["versionBuildCount"] = versionBuildCount + 1;
+                    }
+
+                    // always update meta data
+                    obj["lastBuildDate"] = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
+                    obj["gitCommit"] = FindGitCommitID(versionFilePath);
+
+                    // generate file contents
+                    File.WriteAllText(versionFilePath, obj.ToString(Formatting.Indented), Encoding.ASCII);
+                }
+                else
+                {
+                    //// NOTE: this is a Post-Build Action:
+                    ////       the embedded version file must not be changed!
+
+                    // allow increasing the version next pre-build
+                    bool increasingWasAllowed;
+                    VersionFileDatabase.SetCanIncreaseVersion(versionFilePath, true, out increasingWasAllowed);
+                }
+
+                // return success
                 return 0;
             }
             catch( Exception ex )
@@ -78,6 +125,18 @@ namespace Mechanical3.IncrBuildNum
                 // try to wait for user
                 IgnoreException(() => Console.ReadKey(intercept: true)); // throws in post build events, see: http://stackoverflow.com/a/22554678
                 return 1;
+            }
+        }
+
+        private static string FindGitCommitID( string versionFilePath )
+        {
+            string repositoryPath = Repository.Discover(Path.GetDirectoryName(versionFilePath));
+            if( string.IsNullOrEmpty(repositoryPath) )
+                return null;
+
+            using( var repository = new Repository(repositoryPath) )
+            {
+                return repository.Head?.Tip?.Sha;
             }
         }
 
