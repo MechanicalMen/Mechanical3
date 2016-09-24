@@ -298,6 +298,17 @@ namespace Mechanical3.Tests.Core
 
             // exceptions thrown
             Assert.Throws<ArgumentNullException>(() => ((Exception)null).GetStoredData());
+
+            // Store with a delegate
+            exception = new Exception();
+            exception.Store("a", () => 3);
+            exception.Store("b", (Func<object>)(() => { throw new Exception("test"); }));
+            exception.Store("c", (Func<object>)null);
+            data = exception.GetStoredData();
+            Test.OrdinalEquals("3", data.First(s => s.Name == "a").Value);
+            Test.OrdinalEquals("Exception: test", data.First(s => s.Name == "b").Value);
+            Assert.True(data.First(s => s.Name == "c").Value.StartsWith("ArgumentNullException: "));
+            Assert.True(data.First(s => s.Name == "c").Value.Contains("dlgt"));
         }
     }
 }

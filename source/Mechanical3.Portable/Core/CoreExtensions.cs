@@ -367,6 +367,50 @@ namespace Mechanical3.Core
             return Store(e, StringState.From(name, value), file, member, line);
         }
 
+        /// <summary>
+        /// Executes the delegate, and stores it's return value in the exception.
+        /// Exceptions thrown by the delegate are silently handled.
+        /// </summary>
+        /// <typeparam name="TException">The type of the exception.</typeparam>
+        /// <typeparam name="TValue">The type of value to record.</typeparam>
+        /// <param name="e">The exception to store data in.</param>
+        /// <param name="name">The name of the value.</param>
+        /// <param name="dlgt">The delegate returning the value to store. Exceptions thrown will be silently caught.</param>
+        /// <param name="file">The source file that contains the caller.</param>
+        /// <param name="member">The method or property name of the caller to this method.</param>
+        /// <param name="line">The line number in the source file at which this method is called.</param>
+        /// <returns>The exception data was stored in.</returns>
+        public static TException Store<TException, TValue>(
+            this TException e,
+            string name,
+            Func<TValue> dlgt,
+            [CallerFilePath] string file = "",
+            [CallerMemberName] string member = "",
+            [CallerLineNumber] int line = 0 )
+            where TException : Exception
+        {
+            TValue value;
+            Exception exception;
+            try
+            {
+                if( dlgt.NullReference() )
+                    throw new ArgumentNullException(nameof(dlgt));
+
+                value = dlgt();
+                exception = null;
+            }
+            catch( Exception ex )
+            {
+                value = default(TValue);
+                exception = ex;
+            }
+
+            if( exception.NullReference() )
+                return Store(e, StringState.From(name, value), file, member, line);
+            else
+                return Store(e, StringState.From(name, $"{exception.GetType().Name}: {exception.Message}"), file, member, line);
+        }
+
         #endregion
     }
 }
