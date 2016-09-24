@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Mechanical3.Events;
 using Mechanical3.Misc;
 using Mechanical3.MVVM;
@@ -31,10 +32,12 @@ namespace Mechanical3.Core
         /// <param name="uiThreadHandler">An object representing the UI thread.</param>
         /// <param name="mainEventQueue">The main <see cref="IEventQueue"/> of the application.</param>
         /// <param name="logUnhandledExceptionEvents">If <c>true</c>, logs each <see cref="UnhandledExceptionEvent"/> of the <see cref="EventQueue"/>.</param>
+        /// <param name="enqueueUnobservedTaskExceptions">If <c>true</c>, <see cref="TaskScheduler.UnobservedTaskException"/> will generate <see cref="UnhandledExceptionEvent"/>.</param>
         public static void Initialize(
             IUIThreadHandler uiThreadHandler,
             IEventQueue mainEventQueue,
-            bool logUnhandledExceptionEvents = true )
+            bool logUnhandledExceptionEvents = true,
+            bool enqueueUnobservedTaskExceptions = true )
         {
             if( uiThreadHandler.NullReference() )
                 throw new ArgumentNullException(nameof(uiThreadHandler)).StoreFileLine();
@@ -51,6 +54,15 @@ namespace Mechanical3.Core
 
             if( logUnhandledExceptionEvents )
                 EventQueue.Subscribe(DefaultExceptionEventLogger.Instance);
+
+            if( enqueueUnobservedTaskExceptions )
+            {
+                TaskScheduler.UnobservedTaskException += (s, e) =>
+                {
+                    e.SetObserved();
+                    EnqueueException(e.Exception);
+                };
+            }
         }
 
         /// <summary>
