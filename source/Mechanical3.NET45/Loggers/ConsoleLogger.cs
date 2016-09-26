@@ -33,11 +33,11 @@ namespace Mechanical3.Loggers
             switch( entry.Level )
             {
             case LogLevel.Debug:
-                Write(entry, textColor: ConsoleColor.DarkGray);
+                Write(entry, textColor: ConsoleColor.Gray);
                 break;
 
             case LogLevel.Information:
-                Write(entry, textColor: ConsoleColor.White);
+                Write(entry, textColor: ConsoleColor.Cyan);
                 break;
 
             case LogLevel.Warning:
