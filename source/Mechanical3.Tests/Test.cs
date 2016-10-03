@@ -53,6 +53,15 @@ namespace Mechanical3.Tests
             AssertAreEqual(expected, actual?.Select(p => p.ToString()).ToArray(), FilePath.Comparer);
         }
 
+        public static void AssertAreEqual( DateTime value1, DateTime value2 )
+        {
+            //// NOTE: the default DateTime.Equals() implementation only checks the DateTime.Ticks property
+            //// NOTE: DateTimeOffset.Equals() works fine, however, it's constructor treats DateTimeKind.Unspecified as Local
+
+            Assert.AreEqual(value1.Ticks, value2.Ticks);
+            Assert.AreEqual(value1.Kind, value2.Kind);
+        }
+
         public static void CreateInstanceAndRunInNewAppDomain<T>()
             where T : IAppDomainRunnable, new()
         {
