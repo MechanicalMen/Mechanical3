@@ -23,37 +23,32 @@ namespace Mechanical3.Tests.DataStores
             return new TimeSpan(integralUnits * ticksPerOneUnit + ((firstDecimalUnit * ticksPerOneUnit) / 10L));
         }
 
-        private static void TruncateTests( ISO8601Converter.TimeResolution timeResolution, long ticksPerUnit )
+        private static void TruncateTests( ISO8601Converter converter, long ticksPerUnit )
         {
-            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(CreateTimeSpan(3, 0, ticksPerUnit), timeResolution));
-            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(CreateTimeSpan(3, 1, ticksPerUnit), timeResolution));
-            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(CreateTimeSpan(3, 9, ticksPerUnit), timeResolution));
-            Assert.AreEqual(CreateTimeSpan(-3, 0, ticksPerUnit), ISO8601Converter.Truncate(CreateTimeSpan(-3, 5, ticksPerUnit), timeResolution));
+            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(CreateTimeSpan(3, 0, ticksPerUnit)));
+            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(CreateTimeSpan(3, 1, ticksPerUnit)));
+            Assert.AreEqual(CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(CreateTimeSpan(3, 9, ticksPerUnit)));
+            Assert.AreEqual(CreateTimeSpan(-3, 0, ticksPerUnit), converter.Truncate(CreateTimeSpan(-3, 5, ticksPerUnit)));
 
             var baseTruncatedDateTime = new DateTime((new DateTime(2016, 10, 1, 12, 30, 30, 500).Ticks / ticksPerUnit) * ticksPerUnit, DateTimeKind.Utc);
-            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), timeResolution));
-            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 1, ticksPerUnit), timeResolution));
-            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 9, ticksPerUnit), timeResolution));
-            Test.AssertAreEqual(baseTruncatedDateTime - CreateTimeSpan(4, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTime - CreateTimeSpan(3, 5, ticksPerUnit), timeResolution));
+            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit)));
+            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 1, ticksPerUnit)));
+            Test.AssertAreEqual(baseTruncatedDateTime + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTime + CreateTimeSpan(3, 9, ticksPerUnit)));
+            Test.AssertAreEqual(baseTruncatedDateTime - CreateTimeSpan(4, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTime - CreateTimeSpan(3, 5, ticksPerUnit)));
 
             var baseTruncatedDateTimeOffset = new DateTimeOffset(baseTruncatedDateTime.Ticks, TimeSpan.FromMinutes(30));
-            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), timeResolution));
-            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 1, ticksPerUnit), timeResolution));
-            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 9, ticksPerUnit), timeResolution));
-            Assert.AreEqual(baseTruncatedDateTimeOffset - CreateTimeSpan(4, 0, ticksPerUnit), ISO8601Converter.Truncate(baseTruncatedDateTimeOffset - CreateTimeSpan(3, 5, ticksPerUnit), timeResolution));
+            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit)));
+            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 1, ticksPerUnit)));
+            Assert.AreEqual(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTimeOffset + CreateTimeSpan(3, 9, ticksPerUnit)));
+            Assert.AreEqual(baseTruncatedDateTimeOffset - CreateTimeSpan(4, 0, ticksPerUnit), converter.Truncate(baseTruncatedDateTimeOffset - CreateTimeSpan(3, 5, ticksPerUnit)));
         }
 
         [Test]
         public static void TruncateTests()
         {
-            TruncateTests(ISO8601Converter.TimeResolution.Milliseconds, TimeSpan.TicksPerMillisecond);
-            TruncateTests(ISO8601Converter.TimeResolution.Seconds, TimeSpan.TicksPerSecond);
-            TruncateTests(ISO8601Converter.TimeResolution.Minutes, TimeSpan.TicksPerMinute);
-
-            var baseDateTime = new DateTime(2016, 10, 1, 12, 30, 30, 500, DateTimeKind.Utc);
-            Assert.Throws<ArgumentException>(() => ISO8601Converter.Truncate(baseDateTime.TimeOfDay, (ISO8601Converter.TimeResolution)(-1)));
-            Assert.Throws<ArgumentException>(() => ISO8601Converter.Truncate(baseDateTime, (ISO8601Converter.TimeResolution)(-1)));
-            Assert.Throws<ArgumentException>(() => ISO8601Converter.Truncate(new DateTimeOffset(baseDateTime), (ISO8601Converter.TimeResolution)(-1)));
+            TruncateTests(ISO8601Converter.MillisecondsPrecision, TimeSpan.TicksPerMillisecond);
+            TruncateTests(ISO8601Converter.SecondsPrecision, TimeSpan.TicksPerSecond);
+            TruncateTests(ISO8601Converter.MinutesPrecision, TimeSpan.TicksPerMinute);
         }
 
         #endregion
@@ -65,7 +60,7 @@ namespace Mechanical3.Tests.DataStores
             Func<DateTime, DateTimeKind, DateTime> specifyKind = ( dt, k ) => new DateTime(dt.Ticks, k);
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 12, 345);
             var utcOffset = new DateTimeOffset(specifyKind(testDateTime, DateTimeKind.Local)).Offset; // unfortunately there is no way to set the current time zone, therefore this depends on the host OS
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Seconds);
+            var converter = ISO8601Converter.SecondsPrecision;
 
             // Utc DateTime
             Test.OrdinalEquals("2015-02-28T20:16:12Z", converter.ToString(specifyKind(testDateTime, DateTimeKind.Utc)));
@@ -99,7 +94,7 @@ namespace Mechanical3.Tests.DataStores
             Func<DateTime, DateTimeKind, DateTime> specifyKind = ( dt, k ) => new DateTime(dt.Ticks, k);
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 12, 345);
             var utcOffset = new DateTimeOffset(specifyKind(testDateTime, DateTimeKind.Local)).Offset; // unfortunately there is no way to set the current time zone, therefore this depends on the host OS
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Minutes);
+            var converter = ISO8601Converter.MinutesPrecision;
 
             // Utc DateTime
             Test.OrdinalEquals("2015-02-28T20:16Z", converter.ToString(specifyKind(testDateTime, DateTimeKind.Utc)));
@@ -133,7 +128,7 @@ namespace Mechanical3.Tests.DataStores
             Func<DateTime, DateTimeKind, DateTime> specifyKind = ( dt, k ) => new DateTime(dt.Ticks, k);
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 12, 345);
             var utcOffset = new DateTimeOffset(specifyKind(testDateTime, DateTimeKind.Local)).Offset; // unfortunately there is no way to set the current time zone, therefore this depends on the host OS
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Milliseconds);
+            var converter = ISO8601Converter.MillisecondsPrecision;
 
             // Utc DateTime
             Test.OrdinalEquals("2015-02-28T20:16:12.345Z", converter.ToString(specifyKind(testDateTime, DateTimeKind.Utc)));
@@ -177,7 +172,7 @@ namespace Mechanical3.Tests.DataStores
         private static void ParseTests_Seconds()
         {
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 12, DateTimeKind.Utc);
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Seconds);
+            var converter = ISO8601Converter.SecondsPrecision;
 
             // Utc DateTime
             Test.AssertAreEqual(testDateTime, DataStore.Parse<DateTime>("2015-02-28T20:16:12Z", converter));
@@ -202,7 +197,7 @@ namespace Mechanical3.Tests.DataStores
         private static void ParseTests_Minutes()
         {
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 00, DateTimeKind.Utc);
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Minutes);
+            var converter = ISO8601Converter.MinutesPrecision;
 
             // Utc DateTime
             Test.AssertAreEqual(testDateTime, DataStore.Parse<DateTime>("2015-02-28T20:16Z", converter));
@@ -227,7 +222,7 @@ namespace Mechanical3.Tests.DataStores
         private static void ParseTests_Milliseconds()
         {
             var testDateTime = new DateTime(2015, 02, 28, 20, 16, 12, 345, DateTimeKind.Utc);
-            var converter = new ISO8601Converter(ISO8601Converter.TimeResolution.Milliseconds);
+            var converter = ISO8601Converter.MillisecondsPrecision;
 
             // Utc DateTime
             Test.AssertAreEqual(testDateTime, DataStore.Parse<DateTime>("2015-02-28T20:16:12.345Z", converter));
@@ -255,8 +250,6 @@ namespace Mechanical3.Tests.DataStores
             ParseTests_Seconds();
             ParseTests_Minutes();
             ParseTests_Milliseconds();
-
-            Assert.Throws<ArgumentException>(() => new ISO8601Converter((ISO8601Converter.TimeResolution)(-1)));
         }
 
         #endregion
