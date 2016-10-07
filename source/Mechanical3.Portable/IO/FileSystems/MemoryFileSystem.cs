@@ -24,42 +24,156 @@ namespace Mechanical3.IO.FileSystems
 
         #region EchoStream
 
-        private class EchoStream : Stream
+        /// <summary>
+        /// Transparently wraps a <see cref="Stream"/>.
+        /// All calls, except for Dispose/Close are forwarded.
+        /// </summary>
+        public class EchoStream : Stream
         {
-            private Entry entry;
-            private Stream wrappedStream;
+            #region Private Fields
 
-            private EchoStream( Stream stream, Entry entry )
+            private Stream wrappedStream;
+            private Action closedAction;
+
+            #endregion
+
+            #region Construction, Disposal
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="EchoStream"/> class.
+            /// </summary>
+            /// <param name="stream">The <see cref="Stream"/> to wrap, without disposing it later.</param>
+            /// <param name="onClosed">An optional delegate to execute, as the wrapper is closed.</param>
+            public EchoStream( Stream stream, Action onClosed = null )
             {
                 if( stream.NullReference() )
                     throw new ArgumentNullException(nameof(stream)).StoreFileLine();
 
-                if( entry.NullReference() )
-                    throw new ArgumentNullException(nameof(entry)).StoreFileLine();
-
-                this.entry = entry;
                 this.wrappedStream = stream;
+                this.closedAction = onClosed;
             }
 
-            internal static EchoStream WrapOpenFile( Stream stream, Entry entry )
-            {
-                return new EchoStream(stream, entry);
-            }
-
+            /// <summary>
+            /// Releases the unmanaged resources used by the System.IO.Stream and optionally releases the managed resources.
+            /// </summary>
+            /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
             protected override void Dispose( bool disposing )
             {
                 this.wrappedStream = null;
 
-                if( this.entry.NotNullReference() )
+                if( this.closedAction.NotNullReference() )
                 {
-                    this.entry.CloseFile();
-                    this.entry = null;
+                    this.closedAction();
+                    this.closedAction = null;
                 }
 
                 base.Dispose(disposing);
             }
 
-            private Stream Stream
+            #endregion
+
+            #region Stream
+
+            /// <summary>
+            /// Gets a value indicating whether the current stream supports reading.
+            /// </summary>
+            public override bool CanRead
+            {
+                get { return this.BaseStream.CanRead; }
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether the current stream supports seeking.
+            /// </summary>
+            public override bool CanSeek
+            {
+                get { return this.BaseStream.CanSeek; }
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether the current stream supports writing.
+            /// </summary>
+            public override bool CanWrite
+            {
+                get { return this.BaseStream.CanWrite; }
+            }
+
+            /// <summary>
+            /// Gets the length in bytes of the stream.
+            /// </summary>
+            public override long Length
+            {
+                get { return this.BaseStream.Length; }
+            }
+
+            /// <summary>
+            /// Gets or sets the position within the current stream.
+            /// </summary>
+            public override long Position
+            {
+                get { return this.BaseStream.Position; }
+                set { this.BaseStream.Position = value; }
+            }
+
+            /// <summary>
+            /// Clears all buffers for this stream and causes any buffered data to be written to the underlying device.
+            /// </summary>
+            public override void Flush()
+            {
+                this.BaseStream.Flush();
+            }
+
+            /// <summary>
+            /// Reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.
+            /// </summary>
+            /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values between <paramref name="offset"/> and (<paramref name="offset"/> + <paramref name="count"/> - 1) replaced by the bytes read from the current source.</param>
+            /// <param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin storing the data read from the current stream.</param>
+            /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
+            /// <returns>The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many bytes are not currently available, or zero if the end of the stream has been reached.</returns>
+            public override int Read( byte[] buffer, int offset, int count )
+            {
+                return this.BaseStream.Read(buffer, offset, count);
+            }
+
+            /// <summary>
+            /// Sets the position within the current stream.
+            /// </summary>
+            /// <param name="offset">A byte offset relative to the <paramref name="origin"/> parameter.</param>
+            /// <param name="origin">A value of type <see cref="SeekOrigin"/> indicating the reference point used to obtain the new position.</param>
+            /// <returns>The new position within the current stream.</returns>
+            public override long Seek( long offset, SeekOrigin origin )
+            {
+                return this.BaseStream.Seek(offset, origin);
+            }
+
+            /// <summary>
+            /// Sets the length of the current stream.
+            /// </summary>
+            /// <param name="value">The desired length of the current stream in bytes.</param>
+            public override void SetLength( long value )
+            {
+                this.BaseStream.SetLength(value);
+            }
+
+            /// <summary>
+            /// Writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
+            /// </summary>
+            /// <param name="buffer">An array of bytes. This method copies <paramref name="count"/> bytes from <paramref name="buffer"/> to the current stream.</param>
+            /// <param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin copying bytes to the current stream.</param>
+            /// <param name="count">The number of bytes to be written to the current stream.</param>
+            public override void Write( byte[] buffer, int offset, int count )
+            {
+                this.BaseStream.Write(buffer, offset, count);
+            }
+
+            #endregion
+
+            #region Public Members
+
+            /// <summary>
+            /// Gets the underlying <see cref="Stream"/> that is being wrapped.
+            /// </summary>
+            public Stream BaseStream
             {
                 get
                 {
@@ -70,56 +184,7 @@ namespace Mechanical3.IO.FileSystems
                 }
             }
 
-            public override bool CanRead
-            {
-                get { return this.Stream.CanRead; }
-            }
-
-            public override bool CanSeek
-            {
-                get { return this.Stream.CanSeek; }
-            }
-
-            public override bool CanWrite
-            {
-                get { return this.Stream.CanWrite; }
-            }
-
-            public override long Length
-            {
-                get { return this.Stream.Length; }
-            }
-
-            public override long Position
-            {
-                get { return this.Stream.Position; }
-                set { this.Stream.Position = value; }
-            }
-
-            public override void Flush()
-            {
-                this.Stream.Flush();
-            }
-
-            public override int Read( byte[] buffer, int offset, int count )
-            {
-                return this.Stream.Read(buffer, offset, count);
-            }
-
-            public override long Seek( long offset, SeekOrigin origin )
-            {
-                return this.Stream.Seek(offset, origin);
-            }
-
-            public override void SetLength( long value )
-            {
-                this.Stream.SetLength(value);
-            }
-
-            public override void Write( byte[] buffer, int offset, int count )
-            {
-                this.Stream.Write(buffer, offset, count);
-            }
+            #endregion
         }
 
         #endregion
@@ -237,7 +302,7 @@ namespace Mechanical3.IO.FileSystems
                             this.stream.SetLength(0);
 
                         this.isOpen = true;
-                        return EchoStream.WrapOpenFile(this.stream, this);
+                        return new EchoStream(this.stream, this.CloseFile);
                     }
                     catch
                     {
