@@ -310,11 +310,13 @@ namespace Mechanical3.Tests.Core
             TestTryFormatSuccess("a}b", CultureInfo.InvariantCulture, "a}}b");
 
             // alignment
+            TestTryFormatSuccess("x,", CultureInfo.InvariantCulture, "{0},", 'x');
             TestTryFormatSuccess("  x", CultureInfo.InvariantCulture, "{0,3}", 'x');
             TestTryFormatSuccess("ax  b", CultureInfo.InvariantCulture, "a{0,-3}b", 'x');
             TestTryFormatSuccess("yxxy", CultureInfo.InvariantCulture, "y{0,1}y", "xx"); // optional padding
 
             // format
+            TestTryFormatSuccess("17:", CultureInfo.InvariantCulture, "{0}:", 17);
             TestTryFormatSuccess("11", CultureInfo.InvariantCulture, "{0:x}", 17);
             TestTryFormatSuccess(" 11", CultureInfo.InvariantCulture, "{0,3:x}", 17);
             TestTryFormatSuccess("17", CultureInfo.InvariantCulture, "{0:}", 17); // empty format string = empty string of literals
@@ -368,6 +370,86 @@ namespace Mechanical3.Tests.Core
             // invalid alignment
             TestTryFormatFailure("5", CultureInfo.InvariantCulture, "{0,}", 5);
             TestTryFormatFailure("5", CultureInfo.InvariantCulture, "{0,a}", 5);
+        }
+
+        #endregion
+
+        #region [Try]Print/Format overloads
+
+        [Test]
+        public static void OverloadTests()
+        {
+            // non-default parameters
+            double value = Math.PI;
+            string format = "C";
+            var culture = CultureInfo.GetCultureInfo("pl-PL");
+
+            // all parameters explicitly specified
+            string valueString = value.ToString(format, culture);
+            string tryResult;
+            Assert.True(SafeString.TryPrint(value, format, culture, out tryResult));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Print(value, format, culture));
+
+            Test.OrdinalEquals(valueString, string.Format(culture, $"{{0:{format}}}", value));
+            Assert.True(SafeString.TryFormat(out tryResult, culture, $"{{0:{format}}}", value));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Format(culture, $"{{0:{format}}}", value));
+
+            // default culture
+            valueString = value.ToString(format);
+            Assert.True(SafeString.TryPrint(value, format, out tryResult));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Print(value, format));
+
+            Test.OrdinalEquals(valueString, string.Format($"{{0:{format}}}", value));
+            Assert.True(SafeString.TryFormat(out tryResult, $"{{0:{format}}}", value));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Format($"{{0:{format}}}", value));
+
+            // default format
+            valueString = value.ToString(culture);
+            Assert.True(SafeString.TryPrint(value, culture, out tryResult));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Print(value, culture));
+
+            Test.OrdinalEquals(valueString, string.Format(culture, "{0}", value));
+            Assert.True(SafeString.TryFormat(out tryResult, culture, "{0}", value));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Format(culture, "{0}", value));
+
+            // default culture and format
+            valueString = value.ToString();
+            Assert.True(SafeString.TryPrint(value, out tryResult));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Print(value));
+
+            Test.OrdinalEquals(valueString, string.Format("{0}", value));
+            Assert.True(SafeString.TryFormat(out tryResult, "{0}", value));
+            Test.OrdinalEquals(valueString, tryResult);
+            Test.OrdinalEquals(valueString, SafeString.Format("{0}", value));
+
+            // invariant culture, explicit format
+            valueString = value.ToString(format, CultureInfo.InvariantCulture);
+            Test.OrdinalEquals(valueString, SafeString.InvariantPrint(value, format));
+            Test.OrdinalEquals(valueString, string.Format(CultureInfo.InvariantCulture, $"{{0:{format}}}", value));
+            Test.OrdinalEquals(valueString, SafeString.InvariantFormat($"{{0:{format}}}", value));
+
+            // invariant culture, default format
+            valueString = value.ToString(CultureInfo.InvariantCulture);
+            Test.OrdinalEquals(valueString, SafeString.InvariantPrint(value));
+            Test.OrdinalEquals(valueString, string.Format(CultureInfo.InvariantCulture, "{0}", value));
+            Test.OrdinalEquals(valueString, SafeString.InvariantFormat("{0}", value));
+
+            // debug provider, explicit format
+            valueString = value.ToString(format, CultureInfo.InvariantCulture) + "d";
+            Test.OrdinalEquals(valueString, SafeString.DebugPrint(value, format));
+            Test.OrdinalEquals(valueString, SafeString.DebugFormat($"{{0:{format}}}", value));
+
+            // debug provider, default format
+            valueString = value.ToString("R", CultureInfo.InvariantCulture) + "d";
+            Test.OrdinalEquals(valueString, SafeString.DebugPrint(value));
+            Test.OrdinalEquals(valueString, SafeString.DebugFormat("{0}", value));
         }
 
         #endregion
