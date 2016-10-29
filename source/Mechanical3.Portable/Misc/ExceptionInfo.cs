@@ -214,14 +214,6 @@ namespace Mechanical3.Misc
                 }
             }
 
-            if( !info.StackTrace.NullOrEmpty() ) // this can actually happen
-            {
-                sb.AppendLine();
-                sb.Append(indentation);
-                sb.AppendLine("StackTrace:");
-                sb.Append(IndentMultiLineString(info.StackTrace, indentation + SingleIndentation));
-            }
-
             if( !info.PartialStackTrace.NullOrEmpty() )
             {
                 sb.AppendLine();
@@ -230,6 +222,16 @@ namespace Mechanical3.Misc
                 sb.Append(IndentMultiLineString(info.PartialStackTrace, indentation + SingleIndentation));
             }
 
+            if( !info.StackTrace.NullOrEmpty() ) // this can actually happen
+            {
+                //// NOTE: we print this the end, because it is easy to miss info below large stack traces
+                sb.AppendLine();
+                sb.Append(indentation);
+                sb.AppendLine("StackTrace:");
+                sb.Append(IndentMultiLineString(info.StackTrace, indentation + SingleIndentation));
+            }
+
+            // repeat for inner exceptions
             if( info.InnerException.NotNullReference() )
             {
                 if( info.InnerExceptions.Length == 1 )

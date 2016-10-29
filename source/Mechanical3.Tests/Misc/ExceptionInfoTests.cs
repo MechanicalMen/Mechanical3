@@ -135,6 +135,8 @@ InnerExceptions[1]:
 Message: Exception of type 'System.Exception' was thrown.
 Data:
   a = 1
+PartialStackTrace:
+  at ConstructorTests in ExceptionInfoTests.cs:line 129
 StackTrace:
   at Mechanical3.Tests.Misc.ExceptionInfoTests.ForceStackTrace(Exception ex) in ", // NOTE: we cut things short, since the location of the repository will probably change for each user
                 StringComparison.Ordinal));
