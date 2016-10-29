@@ -383,6 +383,7 @@ namespace Mechanical3.Misc
                 Formatters.Add(typeof(ExceptionInfo), ( self, objectToFormat, formatString ) => ((ExceptionInfo)objectToFormat).ToString());
                 Formatters.Add(typeof(Exception), ( self, objectToFormat, formatString ) => new ExceptionInfo((Exception)objectToFormat).ToString());
                 Formatters.Add(typeof(byte[]), ( self, objectToFormat, formatString ) => Convert.ToBase64String((byte[])objectToFormat));
+                Formatters.Add(typeof(Mechanical3.IO.FileSystems.FilePath), ( self, objectToFormat, formatString ) => self.Format(((Mechanical3.IO.FileSystems.FilePath)objectToFormat)?.ToString(), formatString: null));
             }
 
             /// <summary>

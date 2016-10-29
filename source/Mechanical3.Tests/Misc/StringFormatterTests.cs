@@ -273,6 +273,9 @@ PartialStackTrace:
 
             // byte[]
             Test.OrdinalEquals("AAECAwQFBgcICQ==", ToString(formatter, new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+
+            // FilePath
+            Test.OrdinalEquals("test/", ToString(formatter, Mechanical3.IO.FileSystems.FilePath.FromDirectoryName("test")));
         }
     }
 }
