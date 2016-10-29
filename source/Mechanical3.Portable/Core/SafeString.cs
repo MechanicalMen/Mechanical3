@@ -506,9 +506,3 @@ namespace Mechanical3.Core
         #endregion
     }
 }
-
-//// TODO: Exception debug printing
-//// TODO: ExceptionInfo debug printing
-//// TODO: Enum<>, enum debug printing
-
-//// TODO: debug printed strings and characters no longer have quotation marks: make sure white spaces will still be "visible"

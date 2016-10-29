@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -8,74 +9,38 @@ using Mechanical3.Core;
 
 namespace Mechanical3.Misc
 {
-    //// NOTE: code here should depend only on the .NET framework! (except for SafeString)
-
     /// <summary>
-    /// Helps implementing <see cref="ICustomFormatter"/>.
+    /// Classes implementing common string formatting tasks.
+    /// They are intended to be consumed by methods like SafeString.Format,
+    /// string.Format or StringBuilder.AppendFormat.
     /// </summary>
     public static class StringFormatter
     {
-        //// NOTE: the Format method of an ICustomFormatter instance may be called in two ways:
-        ////   - explicitly by the user, in which case the formatProvider passed to ICustomFormatter.Format may be anything.
-        ////   - implicitly through an IFormatProvider passed to [Safe]String.Format, in which case
-        ////     the formatProvider parameter of ICustomFormatter.Format is the same object
-        ////     (which was passed to [Safe]String.Format; and the same object that ICustomFormatter.Format is being called on, although the interface is different)
-
-        #region FallbackBase
+        #region Base
 
         /// <summary>
-        /// Inheritors of this type can format objects as they choose, and let other objects
-        /// be formatted using the specified default format provider.
+        /// Inheritors can implement custom string formatting of objects.
         /// </summary>
-        public abstract class FallbackBase : IFormatProvider, ICustomFormatter
+        public abstract class Base : IFormatProvider, ICustomFormatter
         {
             #region Private Fields
 
-            private readonly IFormatProvider fallbackProvider;
+            private readonly IFormatProvider fallbackFormatProvider;
 
             #endregion
 
-            #region Constructors
+            #region Constructor
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="FallbackBase"/> class.
+            /// Initializes a new instance of the <see cref="Base"/> class.
             /// </summary>
-            /// <param name="fallbackProvider">The <see cref="IFormatProvider"/> to fall back on, when custom formatting is not available, or fails.</param>
-            protected FallbackBase( IFormatProvider fallbackProvider )
+            /// <param name="formatProvider">The <see cref="IFormatProvider"/> to fall back on, if inheritors can not format the specified object.</param>
+            protected Base( IFormatProvider formatProvider )
             {
-                if( fallbackProvider.NullReference() )
-                    throw new ArgumentException(nameof(fallbackProvider));
+                if( formatProvider.NullReference() )
+                    throw new ArgumentNullException(nameof(formatProvider)).StoreFileLine();
 
-                this.fallbackProvider = fallbackProvider;
-            }
-
-            #endregion
-
-            #region Protected Methods
-
-            /// <summary>
-            /// Override the <see cref="ICustomFormatter"/> fallback.
-            /// Tries to converts the value of a specified object to an equivalent string representation using the specified format.
-            /// </summary>
-            /// <param name="arg">An object to format.</param>
-            /// <param name="format">A format string containing formatting specifications.</param>
-            /// <param name="formattedArg">The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/>.</param>
-            /// <returns><c>true</c> if <paramref name="arg"/> was successfully formatted; otherwise <c>false</c>.</returns>
-            protected virtual bool TryFormat( object arg, string format, out string formattedArg )
-            {
-                formattedArg = null;
-                return false;
-            }
-
-            /// <summary>
-            /// Gets the string representation of the specified object, without invoking custom formatting (other than the fallback format provider).
-            /// </summary>
-            /// <param name="arg">An object to format.</param>
-            /// <param name="format">A format string containing formatting specifications.</param>
-            /// <returns>The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/>.</returns>
-            protected string PrintFallback( object arg, string format )
-            {
-                return Mechanical3.Core.SafeString.Print(arg, format, this.fallbackProvider);
+                this.fallbackFormatProvider = formatProvider;
             }
 
             #endregion
@@ -92,7 +57,7 @@ namespace Mechanical3.Misc
                 if( formatType == typeof(ICustomFormatter) )
                     return this;
                 else
-                    return this.fallbackProvider.GetFormat(formatType);
+                    return this.fallbackFormatProvider.GetFormat(formatType);
             }
 
             #endregion
@@ -100,31 +65,86 @@ namespace Mechanical3.Misc
             #region ICustomFormatter
 
             /// <summary>
-            /// Converts the value of a specified object to an equivalent string representation using the specified format and culture-specific formatting information.
+            /// Converts the value of a specified object to an equivalent string representation using the specified format.
+            /// The specified culture-specific formatting information is ignored.
             /// </summary>
             /// <param name="format">A format string containing formatting specifications.</param>
             /// <param name="arg">An object to format.</param>
             /// <param name="formatProvider">An object that supplies format information about the current instance.</param>
-            /// <returns>The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/> and <paramref name="formatProvider"/>.</returns>
+            /// <returns>The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/>.</returns>
             string ICustomFormatter.Format( string format, object arg, IFormatProvider formatProvider )
             {
-                bool customFormattingWorked;
-                string customFormattedArg;
+                //// NOTE: We ignore the specified IFormatProvider. This is fine,
+                ////       since unless this method is invoked through explicitly through ICustomFormatter,
+                ////       we know that it is the same as "this" object (see SafeString.Format or string.Format implementation).
+
+                return this.Format(arg, format);
+            }
+
+            #endregion
+
+            #region Protected Abstract Methods
+
+            /// <summary>
+            /// Tries to convert the specified object to a string, using to the specified format.
+            /// </summary>
+            /// <param name="objectToFormat">The object to convert to a string.</param>
+            /// <param name="formatString">The format of the generated string (i.e. the number of decimal places, whether to use a currency sign, ... etc.).</param>
+            /// <param name="formattedObject">If the operation was successful, the <paramref name="objectToFormat"/> parameter converted to a string, in the specified format; otherwise <c>null</c>.</param>
+            /// <returns><c>true</c> if the specified object could be formatted; otherwise, <c>false</c>.</returns>
+            protected abstract bool TryFormat( object objectToFormat, string formatString, out string formattedObject );
+
+            #endregion
+
+            #region Protected Methods
+
+            /// <summary>
+            /// Converts the specified object to an equivalent string representation using the specified format, and the fallback <see cref="IFormatProvider"/>.
+            /// </summary>
+            /// <param name="objectToFormat">The object to convert to a string.</param>
+            /// <param name="formatString">The format of the generated string (i.e. the number of decimal places, whether to use a currency sign, ... etc.).</param>
+            /// <returns>The string representation of <paramref name="objectToFormat"/>, formatted using <paramref name="formatString"/> and the fallback <see cref="IFormatProvider"/>.</returns>
+            public string FallbackFormat( object objectToFormat, string formatString )
+            {
+                // NOTE: this is not an infinite loop, since the fallback IFormatProvider
+                //       will not return our reference as an ICustomFormatter
+                return SafeString.Print(objectToFormat, formatString, this.fallbackFormatProvider);
+            }
+
+            #endregion
+
+            #region Public Methods
+
+            /// <summary>
+            /// Converts the specified object to an equivalent string representation using the specified format.
+            /// </summary>
+            /// <param name="objectToFormat">The object to convert to a string.</param>
+            /// <param name="formatString">The format of the generated string (i.e. the number of decimal places, whether to use a currency sign, ... etc.).</param>
+            /// <returns>The string representation of <paramref name="objectToFormat"/>, formatted as specified by <paramref name="formatString"/>.</returns>
+            public string Format( object objectToFormat, string formatString )
+            {
+                bool success;
+                string result;
                 try
                 {
-                    customFormattingWorked = this.TryFormat(arg, format, out customFormattedArg);
+                    success = this.TryFormat(objectToFormat, formatString, out result);
                 }
-                catch
+                catch( Exception exception )
                 {
-                    customFormattingWorked = false;
-                    customFormattedArg = null;
+                    if( Debugger.IsAttached )
+                    {
+                        exception.NotNullReference(); // removes unused variable compiler message
+                        Debugger.Break();
+                    }
+
+                    success = false;
+                    result = null;
                 }
 
-                if( customFormattingWorked
-                 && customFormattedArg.NotNullReference() )
-                    return customFormattedArg;
+                if( success )
+                    return result;
                 else
-                    return this.PrintFallback(arg, format);
+                    return this.FallbackFormat(objectToFormat, formatString);
             }
 
             #endregion
@@ -138,7 +158,7 @@ namespace Mechanical3.Misc
         /// Supports <see cref="IEnumerable"/> formatting.
         /// All other types fall back to the specified format provider.
         /// </summary>
-        public class Enumerable : FallbackBase
+        public class Enumerable : Base
         {
             #region Private Fields
 
@@ -168,23 +188,23 @@ namespace Mechanical3.Misc
             #region Protected Methods
 
             /// <summary>
-            /// Override the <see cref="ICustomFormatter"/> fallback.
-            /// Tries to converts the value of a specified object to an equivalent string representation using the specified format.
+            /// Tries to convert the specified object to a string, using to the specified format.
             /// </summary>
-            /// <param name="arg">An object to format.</param>
-            /// <param name="format">A format string containing formatting specifications.</param>
-            /// <param name="formattedArg">The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/>.</param>
-            /// <returns><c>true</c> if <paramref name="arg"/> was successfully formatted; otherwise <c>false</c>.</returns>
-            protected override bool TryFormat( object arg, string format, out string formattedArg )
+            /// <param name="objectToFormat">The object to convert to a string.</param>
+            /// <param name="formatString">The format of the generated string (i.e. the number of decimal places, whether to use a currency sign, ... etc.).</param>
+            /// <param name="formattedObject">If the operation was successful, the <paramref name="objectToFormat"/> parameter converted to a string, in the specified format; otherwise <c>null</c>.</param>
+            /// <returns><c>true</c> if the specified object could be formatted; otherwise, <c>false</c>.</returns>
+            protected override bool TryFormat( object objectToFormat, string formatString, out string formattedObject )
             {
-                if( this.IsEnumerable(arg) )
+                if( this.IsEnumerable(objectToFormat) )
                 {
-                    formattedArg = this.Format((IEnumerable)arg, format);
+                    formattedObject = this.FormatEnumerable((IEnumerable)objectToFormat, formatString);
                     return true;
                 }
                 else
                 {
-                    return base.TryFormat(arg, format, out formattedArg);
+                    formattedObject = null;
+                    return false;
                 }
             }
 
@@ -222,7 +242,8 @@ namespace Mechanical3.Misc
                 else if( enumerableFormat.Length > 0
                       && char.ToUpperInvariant(enumerableFormat[0]) == 'L' )
                 {
-                    if( !SafeString.TryParseInt32(enumerableFormat.Substring(startIndex: 1), out maxLength) )
+                    if( !SafeString.TryParseInt32(enumerableFormat.Substring(startIndex: 1), out maxLength)
+                     || maxLength < 0 )
                         goto error;
                 }
                 else
@@ -232,13 +253,13 @@ namespace Mechanical3.Misc
 
                 return;
 
-            error:
+                error:
                 //// TODO: log format error
                 maxLength = DefaultMaxLength;
                 itemFormat = DefaultElementFormat;
             }
 
-            private string Format( IEnumerable enumerable, string format )
+            private string FormatEnumerable( IEnumerable enumerable, string format )
             {
                 int maxLength;
                 string itemFormat;
@@ -267,11 +288,11 @@ namespace Mechanical3.Misc
                         //       For example a format like "L99:L0" is fine for enumerables, but when applied to an
                         //       integer like '5', it will be taken as a custom format string: most of it will be printed
                         //       as a literal, except for '0' which is a placeholder (the end result being 5 --> "L99:L5")
-                        currentItemAsString = SafeString.Print(currentItem, format: itemFormat, formatProvider: this);
+                        currentItemAsString = this.Format(currentItem, itemFormat);
                     }
                     else
                     {
-                        currentItemAsString = SafeString.Print(currentItem, format: null, formatProvider: this);
+                        currentItemAsString = this.Format(currentItem, formatString: null);
                     }
 
                     closedLength = sb.Length + currentItemAsString.Length + Separator.Length + Ellipsis.Length + ClosingBracket.Length;
@@ -315,6 +336,7 @@ namespace Mechanical3.Misc
 
             private const string Null = "null";
             private static readonly Dictionary<Type, string> BuiltInTypes;
+            private static readonly Dictionary<Type, Func<Debug, object, string, string>> Formatters;
 
             #endregion
 
@@ -339,6 +361,28 @@ namespace Mechanical3.Misc
                 BuiltInTypes.Add(typeof(bool), "bool");
                 BuiltInTypes.Add(typeof(object), "object");
                 BuiltInTypes.Add(typeof(void), "void");
+
+                Formatters = new Dictionary<Type, Func<Debug, object, string, string>>();
+                Formatters.Add(typeof(sbyte), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "y");
+                Formatters.Add(typeof(byte), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "uy");
+                Formatters.Add(typeof(short), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "s");
+                Formatters.Add(typeof(ushort), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "us");
+                Formatters.Add(typeof(int), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString));
+                Formatters.Add(typeof(uint), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "u");
+                Formatters.Add(typeof(long), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "L");
+                Formatters.Add(typeof(ulong), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "UL");
+                Formatters.Add(typeof(float), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString.NullOrEmpty() ? "R" : formatString) + "f");
+                Formatters.Add(typeof(double), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString.NullOrEmpty() ? "R" : formatString) + "d");
+                Formatters.Add(typeof(decimal), ( self, objectToFormat, formatString ) => self.FallbackFormat(objectToFormat, formatString) + "m");
+                Formatters.Add(typeof(bool), ( self, objectToFormat, formatString ) => (bool)objectToFormat ? "true" : "false");
+                Formatters.Add(typeof(char), ( self, objectToFormat, formatString ) => ((char)objectToFormat).ToString());
+                Formatters.Add(typeof(string), ( self, objectToFormat, formatString ) => (string)objectToFormat);
+                Formatters.Add(typeof(DateTime), ( self, objectToFormat, formatString ) => ((DateTime)objectToFormat).ToString("o", CultureInfo.InvariantCulture));
+                Formatters.Add(typeof(DateTimeOffset), ( self, objectToFormat, formatString ) => ((DateTimeOffset)objectToFormat).ToString("o", CultureInfo.InvariantCulture));
+                Formatters.Add(typeof(TimeSpan), ( self, objectToFormat, formatString ) => ((TimeSpan)objectToFormat).ToString("c", CultureInfo.InvariantCulture));
+                Formatters.Add(typeof(ExceptionInfo), ( self, objectToFormat, formatString ) => ((ExceptionInfo)objectToFormat).ToString());
+                Formatters.Add(typeof(Exception), ( self, objectToFormat, formatString ) => new ExceptionInfo((Exception)objectToFormat).ToString());
+                Formatters.Add(typeof(byte[]), ( self, objectToFormat, formatString ) => Convert.ToBase64String((byte[])objectToFormat));
             }
 
             /// <summary>
@@ -543,158 +587,94 @@ namespace Mechanical3.Misc
             #region Protected Methods
 
             /// <summary>
-            /// Override the <see cref="ICustomFormatter"/> fallback.
-            /// Tries to converts the value of a specified object to an equivalent string representation using the specified format.
+            /// Tries to convert the specified object to a string, using to the specified format.
             /// </summary>
-            /// <param name="arg">An object to format.</param>
-            /// <param name="format">A format string containing formatting specifications.</param>
-            /// <param name="formattedArg">The string representation of the value of <paramref name="arg"/>, formatted as specified by <paramref name="format"/>.</param>
-            /// <returns><c>true</c> if <paramref name="arg"/> was successfully formatted; otherwise <c>false</c>.</returns>
-            protected override bool TryFormat( object arg, string format, out string formattedArg )
+            /// <param name="objectToFormat">The object to convert to a string.</param>
+            /// <param name="formatString">The format of the generated string (i.e. the number of decimal places, whether to use a currency sign, ... etc.).</param>
+            /// <param name="formattedObject">If the operation was successful, the <paramref name="objectToFormat"/> parameter converted to a string, in the specified format; otherwise <c>null</c>.</param>
+            /// <returns><c>true</c> if the specified object could be formatted; otherwise, <c>false</c>.</returns>
+            protected override bool TryFormat( object objectToFormat, string formatString, out string formattedObject )
             {
-                if( arg.NullReference() )
+                if( objectToFormat.NullReference() )
                 {
-                    formattedArg = Null;
-                }
-                else if( arg is sbyte )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "y";
-                }
-                else if( arg is byte )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "uy";
-                }
-                else if( arg is short )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "s";
-                }
-                else if( arg is ushort )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "us";
-                }
-                else if( arg is uint )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "u";
-                }
-                else if( arg is long )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "L";
-                }
-                else if( arg is ulong )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "UL";
-                }
-                else if( arg is float )
-                {
-                    formattedArg = this.PrintFallback(arg, string.IsNullOrEmpty(format) ? "R" : format) + "f";
-                }
-                else if( arg is double )
-                {
-                    formattedArg = this.PrintFallback(arg, string.IsNullOrEmpty(format) ? "R" : format) + "d";
-                }
-                else if( arg is decimal )
-                {
-                    formattedArg = this.PrintFallback(arg, format) + "m";
-                }
-                else if( arg is bool )
-                {
-                    formattedArg = (bool)arg ? "true" : "false";
-                }
-                else if( arg is char )
-                {
-                    formattedArg = ((char)arg).ToString();
-                }
-                else if( arg is string )
-                {
-                    formattedArg = (string)arg;
-                }
-                else if( arg is byte[] )
-                {
-                    formattedArg = Convert.ToBase64String((byte[])arg);
-                }
-                else if( arg is Type )
-                {
-                    var sb = new StringBuilder();
-                    this.AppendType(sb, format, (Type)arg);
-                    formattedArg = sb.ToString();
-                }
-                else if( arg is TypeInfo )
-                {
-                    var sb = new StringBuilder();
-                    this.AppendType(sb, format, ((TypeInfo)arg).AsType());
-                    formattedArg = sb.ToString();
-                }
-                else if( arg is ParameterInfo )
-                {
-                    var sb = new StringBuilder();
-                    this.AppendParameter(sb, format, (ParameterInfo)arg);
-                    formattedArg = sb.ToString();
-                }
-                else if( arg is MethodBase )
-                {
-                    var sb = new StringBuilder();
-                    this.AppendMethod(sb, format, (MethodBase)arg);
-                    formattedArg = sb.ToString();
-                }
-                else if( arg is Exception )
-                {
-                    formattedArg = new ExceptionInfo((Exception)arg).ToString();
-                }
-                else if( arg is ExceptionInfo )
-                {
-                    formattedArg = ((ExceptionInfo)arg).ToString();
-                }
-                else if( arg is DateTime )
-                {
-                    formattedArg = ((DateTime)arg).ToString("o", CultureInfo.InvariantCulture);
-                }
-                else if( arg is DateTimeOffset )
-                {
-                    formattedArg = ((DateTimeOffset)arg).ToString("o", CultureInfo.InvariantCulture);
-                }
-                else if( arg is TimeSpan )
-                {
-                    formattedArg = ((TimeSpan)arg).ToString("c", CultureInfo.InvariantCulture);
+                    formattedObject = Null;
                 }
                 else
                 {
-                    var type = arg.GetType();
-                    var typeInfo = type.GetTypeInfo();
-                    if( typeInfo.IsGenericType )
+                    var type = objectToFormat.GetType();
+                    Func<Debug, object, string, string> f;
+                    if( Formatters.TryGetValue(type, out f) )
                     {
-                        var typeDef = type.GetGenericTypeDefinition();
-                        if( typeDef == typeof(Nullable<>) )
+                        formattedObject = f(this, objectToFormat, formatString);
+                    }
+                    else if( objectToFormat is Type ) // NOTE: the actual reflection types we get are RuntimeType, RuntimeParameterInfo, ..., which inherit Type, ParameterInfo, ... etc.
+                    {
+                        var sb = new StringBuilder();
+                        this.AppendType(sb, formatString, (Type)objectToFormat);
+                        formattedObject = sb.ToString();
+                    }
+                    else if( objectToFormat is TypeInfo )
+                    {
+                        var sb = new StringBuilder();
+                        this.AppendType(sb, formatString, ((TypeInfo)objectToFormat).AsType());
+                        formattedObject = sb.ToString();
+                    }
+                    else if( objectToFormat is ParameterInfo )
+                    {
+                        var sb = new StringBuilder();
+                        this.AppendParameter(sb, formatString, (ParameterInfo)objectToFormat);
+                        formattedObject = sb.ToString();
+                    }
+                    else if( objectToFormat is MethodBase )
+                    {
+                        var sb = new StringBuilder();
+                        this.AppendMethod(sb, formatString, (MethodBase)objectToFormat);
+                        formattedObject = sb.ToString();
+                    }
+                    else
+                    {
+                        var typeInfo = type.GetTypeInfo();
+                        if( typeInfo.IsGenericType )
                         {
-                            var hasValue = (bool)typeInfo.GetDeclaredProperty("HasValue").GetValue(arg, index: null);
-                            if( hasValue )
+                            var typeDef = type.GetGenericTypeDefinition();
+                            if( typeDef == typeof(Nullable<>) )
                             {
-                                object value = typeInfo.GetDeclaredProperty("Value").GetValue(arg, index: null);
-                                formattedArg = SafeString.Print(value, format, formatProvider: this);
+                                //// NOTE: I do not know how to unit test this:
+                                ////        - ((float?)3.14f).GetType() --> float
+                                ////        - (float?)null --> null reference
+                                ////       Not sure this code ever runs...
+
+                                var hasValue = (bool)typeInfo.GetDeclaredProperty("HasValue").GetValue(objectToFormat, index: null);
+                                if( hasValue )
+                                {
+                                    object value = typeInfo.GetDeclaredProperty("Value").GetValue(objectToFormat, index: null);
+                                    formattedObject = this.Format(value, formatString);
+                                }
+                                else
+                                {
+                                    formattedObject = Null;
+                                }
+                            }
+                            else if( typeDef == typeof(KeyValuePair<,>) )
+                            {
+                                object key = typeInfo.GetDeclaredProperty("Key").GetValue(objectToFormat, index: null);
+                                object value = typeInfo.GetDeclaredProperty("Value").GetValue(objectToFormat, index: null);
+                                formattedObject = string.Format(
+                                    "[{0}, {1}]",
+                                    this.Format(key, formatString),
+                                    this.Format(value, formatString));
                             }
                             else
                             {
-                                formattedArg = Null;
+                                // No custom formatting available here, but maybe our base type has something...
+                                return base.TryFormat(objectToFormat, formatString, out formattedObject);
                             }
-                        }
-                        else if( typeDef == typeof(KeyValuePair<,>) )
-                        {
-                            object key = typeInfo.GetDeclaredProperty("Key").GetValue(arg, index: null);
-                            object value = typeInfo.GetDeclaredProperty("Value").GetValue(arg, index: null);
-                            formattedArg = string.Format(
-                                "[{0}, {1}]",
-                                SafeString.Print(key, format, formatProvider: this),
-                                SafeString.Print(value, format, formatProvider: this));
                         }
                         else
                         {
                             // No custom formatting available here, but maybe our base type has something...
-                            return base.TryFormat(arg, format, out formattedArg);
+                            return base.TryFormat(objectToFormat, formatString, out formattedObject);
                         }
-                    }
-                    else
-                    {
-                        // No custom formatting available here, but maybe our base type has something...
-                        return base.TryFormat(arg, format, out formattedArg);
                     }
                 }
 

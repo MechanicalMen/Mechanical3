@@ -47,6 +47,63 @@ namespace Mechanical3.Tests.Misc
 
         #endregion
 
+        #region TestFallbackFormatter
+
+        private class TestFallbackFormatter : StringFormatter.Base
+        {
+            internal TestFallbackFormatter( IFormatProvider fallbackProvider )
+                : base(fallbackProvider)
+            {
+            }
+
+            protected override bool TryFormat( object objectToFormat, string formatString, out string formattedObject )
+            {
+                if( objectToFormat is float )
+                {
+                    if( (float)objectToFormat >= 0 )
+                    {
+                        formattedObject = "x";
+                        return true;
+                    }
+                    else
+                    {
+                        formattedObject = null;
+                        return false;
+                    }
+                }
+                else if( objectToFormat is int )
+                {
+                    throw new Exception("Failed to format argument!");
+                }
+                else
+                {
+                    formattedObject = null;
+                    return false;
+                }
+            }
+        }
+
+        #endregion
+
+        [Test]
+        public static void FallbackFormatterTests()
+        {
+            var culture = CultureInfo.InvariantCulture;
+            var formatter = new TestFallbackFormatter(culture);
+
+            // GetFormat
+            Assert.True(object.ReferenceEquals(formatter, ((IFormatProvider)formatter).GetFormat(typeof(ICustomFormatter))));
+            Assert.False(object.ReferenceEquals(formatter, ((IFormatProvider)formatter).GetFormat(typeof(NumberFormatInfo))));
+            Assert.True(object.ReferenceEquals(culture.GetFormat(typeof(NumberFormatInfo)), ((IFormatProvider)formatter).GetFormat(typeof(NumberFormatInfo))));
+
+            // Format
+            Test.OrdinalEquals("x", formatter.Format(3.14f, "G")); // TestFallbackFormatter
+            Test.OrdinalEquals("-3.14", formatter.Format(-3.14f, "G")); // InvariantCulture (TryFormat returned false)
+            Test.OrdinalEquals("5", formatter.Format(5, "G")); // InvariantCulture (TryFormat threw an exception)
+
+            Assert.Throws<ArgumentNullException>(() => new TestFallbackFormatter(null));
+        }
+
         [Test]
         public static void EnumerableFormatterTests()
         {
@@ -75,6 +132,20 @@ namespace Mechanical3.Tests.Misc
             Test.OrdinalEquals("{...}", ToString(formatter, simpleArray, "L7"));
             Test.OrdinalEquals("{...}", ToString(formatter, simpleArray, "L5"));
             Test.OrdinalEquals(string.Empty, ToString(formatter, simpleArray, "L4"));
+
+            // large enumerations
+            var largeArray = Enumerable.Range(start: 1, count: 100).ToArray();
+            Test.OrdinalEquals(
+                "{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, ...}",
+                ToString(formatter, largeArray, "G"));
+            Test.OrdinalEquals(
+                "{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100}",
+                ToString(formatter, largeArray, "L400"));
+
+            // invalid format replaced by "G"
+            Test.OrdinalEquals(ToString(formatter, largeArray, "G"), ToString(formatter, largeArray, "L-10"));
+            Test.OrdinalEquals(ToString(formatter, largeArray, "G"), ToString(formatter, largeArray, "L"));
+            Test.OrdinalEquals(ToString(formatter, largeArray, "G"), ToString(formatter, largeArray, "X"));
 
             // arrays of arrays
             var complexArray = new object[]
@@ -121,7 +192,7 @@ namespace Mechanical3.Tests.Misc
             Test.OrdinalEquals(@"a", ToString(formatter, "a"));
             Test.OrdinalEquals(@"a""'b", ToString(formatter, @"a""'b"));
 
-            // DateTime, DateTimeOffset
+            // DateTime, DateTimeOffset, TimeSpan
             var now = DateTime.Now;
             Test.OrdinalEquals(now.ToString("o"), ToString(formatter, now));
             now = new DateTime(now.Ticks, DateTimeKind.Utc);
@@ -193,13 +264,15 @@ Message: test message
 Data:
   testValue = 3
 PartialStackTrace:
-  at DebugFormatterTests in StringFormatterTests.cs:line 190"; // Exception.ToString has no "Data" part
+  at DebugFormatterTests in StringFormatterTests.cs:line 261"; // Exception.ToString has no "Data" part
             Test.OrdinalEquals(exceptionString, ToString(formatter, exception));
             Test.OrdinalEquals(exceptionString, ToString(formatter, new ExceptionInfo(exception)));
 
-            // nullable
-            Test.OrdinalEquals("3.14f", ToString(formatter, (float?)3.14f));
-            Test.OrdinalEquals("null", ToString(formatter, (float?)null));
+            // KeyValuePair
+            Test.OrdinalEquals("[3.14f, null]", ToString(formatter, new KeyValuePair<float, string>(3.14f, null)));
+
+            // byte[]
+            Test.OrdinalEquals("AAECAwQFBgcICQ==", ToString(formatter, new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
         }
     }
 }
