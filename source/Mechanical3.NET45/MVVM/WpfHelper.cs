@@ -214,14 +214,14 @@ namespace Mechanical3.MVVM
 
         private static string GetNewLogFileNameWithoutExtension()
         {
-            return "log " + DateTime.UtcNow.ToString("yyyy-MM-dd HH-mm", CultureInfo.InvariantCulture);
+            return "log_" + DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm", CultureInfo.InvariantCulture);
         }
 
         private static DateTime ParseLogFileName( FilePath logFile )
         {
             return DateTime.ParseExact(
-                logFile.NameWithoutExtension.Substring(startIndex: "log ".Length),
-                "yyyy-MM-dd HH-mm",
+                logFile.NameWithoutExtension.Replace(' ', '_').Substring(startIndex: "log_".Length),
+                "yyyy-MM-dd_HH-mm",
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
         }
