@@ -56,15 +56,16 @@ namespace Mechanical3.IncrBuildNum
                 }
 
                 bool isPreBuildAction = default(bool);
-                bool preserveVersionNumbers = false;
                 if( HasCommandLineParameter("--pre-build") )
                     isPreBuildAction = true;
                 else if( HasCommandLineParameter("--post-build") )
                     isPreBuildAction = false;
-                else if( HasCommandLineParameter("--preserve-version") )
-                    preserveVersionNumbers = true;
                 else
                     throw new ArgumentException($"Second parameter could not be recognized: \"{args[1]}\"");
+
+                bool preserveVersionNumbers = false;
+                if( HasCommandLineParameter("--preserve-version") )
+                    preserveVersionNumbers = true;
 
                 if( isPreBuildAction )
                 {
