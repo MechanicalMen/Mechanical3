@@ -77,6 +77,7 @@ namespace Mechanical3.Loggers
                 throw new ArgumentNullException(nameof(entry)).StoreFileLine();
 
             LogEntry.Save(entry, this.writer);
+            this.writer.Flush();
         }
 
         #endregion

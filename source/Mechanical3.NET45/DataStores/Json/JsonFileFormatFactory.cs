@@ -59,7 +59,7 @@ namespace Mechanical3.DataStores.Json
             textWriter.NewLine = options.NewLine;
             var jsonWriter = new JsonTextWriter(textWriter);
             jsonWriter.Formatting = options.Indent ? Formatting.Indented : Formatting.None;
-            return new JsonFileFormatWriter(jsonWriter);
+            return new JsonFileFormatWriter(jsonWriter, stream: (textWriter as StreamWriter)?.BaseStream as FileStream);
         }
 
         #endregion

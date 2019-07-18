@@ -218,6 +218,14 @@ namespace Mechanical3.DataStores
             this.nameOfNextNode = null;
         }
 
+        /// <summary>
+        /// Flushes all internal buffers.
+        /// </summary>
+        public void Flush()
+        {
+            this.file.Flush();
+        }
+
         #endregion
 
         #region Extended Members

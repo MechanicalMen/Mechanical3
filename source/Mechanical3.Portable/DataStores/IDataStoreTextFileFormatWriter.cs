@@ -16,5 +16,10 @@ namespace Mechanical3.DataStores
         /// <param name="value">The serialized value of a <see cref="DataStoreToken.Value"/>.</param>
         /// <param name="valueType">The type whose instance <paramref name="value"/> was serialized from.</param>
         void WriteToken( DataStoreToken token, string name, string value, Type valueType );
+
+        /// <summary>
+        /// Flushes all internal buffers.
+        /// </summary>
+        void Flush();
     }
 }

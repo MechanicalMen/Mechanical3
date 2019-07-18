@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Mechanical3.Core;
 using Newtonsoft.Json;
 
@@ -15,6 +16,7 @@ namespace Mechanical3.DataStores.Json
         private readonly HashSet<Type> rawValueTypes;
         private readonly Stack<DataStoreToken> parents;
         private JsonWriter jsonWriter;
+        private FileStream fileStream;
 
         #endregion
 
@@ -24,7 +26,8 @@ namespace Mechanical3.DataStores.Json
         /// Initializes a new instance of the <see cref="JsonFileFormatWriter"/> class.
         /// </summary>
         /// <param name="writer">The <see cref="JsonWriter"/> to use.</param>
-        internal JsonFileFormatWriter( JsonWriter writer )
+        /// <param name="stream">The file that is being written to.</param>
+        internal JsonFileFormatWriter( JsonWriter writer, FileStream stream )
         {
             if( writer.NullReference() )
                 throw new ArgumentNullException(nameof(writer)).StoreFileLine();
@@ -45,6 +48,7 @@ namespace Mechanical3.DataStores.Json
 
             this.parents = new Stack<DataStoreToken>();
             this.jsonWriter = writer;
+            this.fileStream = stream; // may be null!
 
             this.jsonWriter.WriteStartObject();
             this.jsonWriter.WritePropertyName("FormatVersion");
@@ -73,6 +77,13 @@ namespace Mechanical3.DataStores.Json
 
                     this.jsonWriter.Close();
                     this.jsonWriter = null;
+                }
+
+                // this should be redundant
+                if( this.fileStream.NotNullReference() )
+                {
+                    this.fileStream.Close();
+                    this.fileStream = null;
                 }
             }
 
@@ -187,6 +198,15 @@ namespace Mechanical3.DataStores.Json
             default:
                 throw new ArgumentException("Unknown token!").Store(nameof(token), token).Store(nameof(name), name);
             }
+        }
+
+        /// <summary>
+        /// Flushes all internal buffers.
+        /// </summary>
+        public void Flush()
+        {
+            this.jsonWriter.Flush();
+            this.fileStream?.Flush(flushToDisk: true);
         }
 
         #endregion

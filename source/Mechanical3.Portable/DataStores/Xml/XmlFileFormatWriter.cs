@@ -156,6 +156,14 @@ namespace Mechanical3.DataStores.Xml
             }
         }
 
+        /// <summary>
+        /// Flushes all internal buffers.
+        /// </summary>
+        public void Flush()
+        {
+            this.xmlWriter.Flush();
+        }
+
         #endregion
     }
 }
