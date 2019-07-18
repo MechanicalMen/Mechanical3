@@ -42,18 +42,27 @@ namespace Mechanical3.IncrBuildNum
             try
             {
                 // get command line arguments
-                if( args.Length != 2 )
-                    throw new ArgumentException("Exactly 2 arguments must be specified!");
+                if( args.Length < 2 || args.Length > 3 )
+                    throw new ArgumentException("Exactly 2 or 3 arguments must be specified!");
 
                 var versionFilePath = args[0];
                 if( !File.Exists(versionFilePath) )
                     throw new FileNotFoundException("Version file not found!");
 
-                bool isPreBuildAction;
-                if( string.Equals(args[1], "--pre-build", StringComparison.Ordinal) )
+                bool HasCommandLineParameter( string parameter )
+                {
+                    return (args.Length >= 2) && string.Equals(args[1], parameter, StringComparison.Ordinal)
+                        || (args.Length >= 3) && string.Equals(args[2], parameter, StringComparison.Ordinal);
+                }
+
+                bool isPreBuildAction = default(bool);
+                bool preserveVersionNumbers = false;
+                if( HasCommandLineParameter("--pre-build") )
                     isPreBuildAction = true;
-                else if( string.Equals(args[1], "--post-build", StringComparison.Ordinal) )
+                else if( HasCommandLineParameter("--post-build") )
                     isPreBuildAction = false;
+                else if( HasCommandLineParameter("--preserve-version") )
+                    preserveVersionNumbers = true;
                 else
                     throw new ArgumentException($"Second parameter could not be recognized: \"{args[1]}\"");
 
@@ -69,7 +78,8 @@ namespace Mechanical3.IncrBuildNum
                     // check if version numbers can be increased
                     bool increasingWasAllowed;
                     VersionFileDatabase.SetCanIncreaseVersion(versionFilePath, false, out increasingWasAllowed);
-                    if( increasingWasAllowed )
+                    if( increasingWasAllowed
+                     && !preserveVersionNumbers )
                     {
                         var totalBuildCount = (int)obj["totalBuildCount"];
                         var versionBuildCount = (int)obj["versionBuildCount"];
