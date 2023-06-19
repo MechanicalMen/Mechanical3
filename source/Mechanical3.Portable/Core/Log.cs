@@ -157,7 +157,7 @@ namespace Mechanical3.Core
         }
 
         /// <summary>
-        /// Logs a message using <see cref="LogLevel.Debug"/>.
+        /// Logs a message using LogLevel.Debug.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="exception">An optional <see cref="Exception"/> to attach to the log entry.</param>
@@ -175,7 +175,7 @@ namespace Mechanical3.Core
         }
 
         /// <summary>
-        /// Logs a message using <see cref="LogLevel.Information"/>.
+        /// Logs a message using LogLevel.Information.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="exception">An optional <see cref="Exception"/> to attach to the log entry.</param>
@@ -193,7 +193,7 @@ namespace Mechanical3.Core
         }
 
         /// <summary>
-        /// Logs a message using <see cref="LogLevel.Warning"/>.
+        /// Logs a message using LogLevel.Warning.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="exception">An optional <see cref="Exception"/> to attach to the log entry.</param>
@@ -211,7 +211,7 @@ namespace Mechanical3.Core
         }
 
         /// <summary>
-        /// Logs a message using <see cref="LogLevel.Error"/>.
+        /// Logs a message using LogLevel.Error.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="exception">An optional <see cref="Exception"/> to attach to the log entry.</param>
@@ -229,7 +229,7 @@ namespace Mechanical3.Core
         }
 
         /// <summary>
-        /// Logs a message using <see cref="LogLevel.Fatal"/>.
+        /// Logs a message using LogLevel.Fatal.
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="exception">An optional <see cref="Exception"/> to attach to the log entry.</param>

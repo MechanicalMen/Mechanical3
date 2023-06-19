@@ -43,7 +43,23 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\source\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\source\packages\System.Collections.Immutable.5.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\source\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\source\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\source\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +69,243 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Mechanical3.Portable\Collections\EnumerableBase.cs">
+      <Link>Collections\EnumerableBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\CoreExtensions.cs">
+      <Link>Core\CoreExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\DisposableObject.cs">
+      <Link>Core\DisposableObject.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\Log.cs">
+      <Link>Core\Log.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\MechanicalApp.cs">
+      <Link>Core\MechanicalApp.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\NamedArgumentException.cs">
+      <Link>Core\NamedArgumentException.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\SafeString.cs">
+      <Link>Core\SafeString.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Core\StringPattern.cs">
+      <Link>Core\StringPattern.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStore.cs">
+      <Link>DataStores\DataStore.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStoreExtensions.cs">
+      <Link>DataStores\DataStoreExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStoreFileFormatWriterOptions.cs">
+      <Link>DataStores\DataStoreFileFormatWriterOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStoreTextReader.cs">
+      <Link>DataStores\DataStoreTextReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStoreTextWriter.cs">
+      <Link>DataStores\DataStoreTextWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\DataStoreToken.cs">
+      <Link>DataStores\DataStoreToken.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\IDataStoreTextFileFormatFactory.cs">
+      <Link>DataStores\IDataStoreTextFileFormatFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\IDataStoreTextFileFormatReader.cs">
+      <Link>DataStores\IDataStoreTextFileFormatReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\IDataStoreTextFileFormatWriter.cs">
+      <Link>DataStores\IDataStoreTextFileFormatWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\ISO8601Converter.cs">
+      <Link>DataStores\ISO8601Converter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\IStringConverter.cs">
+      <Link>DataStores\IStringConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\IStringConverterLocator.cs">
+      <Link>DataStores\IStringConverterLocator.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\NullableStringConverter.cs">
+      <Link>DataStores\NullableStringConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\ParentStack.cs">
+      <Link>DataStores\ParentStack.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\RoundTripStringConverter.cs">
+      <Link>DataStores\RoundTripStringConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\StringConverterCollection.cs">
+      <Link>DataStores\StringConverterCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\Xml\XmlFileFormatFactory.cs">
+      <Link>DataStores\Xml\XmlFileFormatFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\Xml\XmlFileFormatReader.cs">
+      <Link>DataStores\Xml\XmlFileFormatReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\Xml\XmlFileFormatReader2.cs">
+      <Link>DataStores\Xml\XmlFileFormatReader2.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\Xml\XmlFileFormatReader3.cs">
+      <Link>DataStores\Xml\XmlFileFormatReader3.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\DataStores\Xml\XmlFileFormatWriter.cs">
+      <Link>DataStores\Xml\XmlFileFormatWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EnqueuedEvent.cs">
+      <Link>Events\EnqueuedEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventBase.cs">
+      <Link>Events\EventBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventQueueClosedEvent.cs">
+      <Link>Events\EventQueueClosedEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventQueueCloseRequestEvent.cs">
+      <Link>Events\EventQueueCloseRequestEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventQueueClosingEvent.cs">
+      <Link>Events\EventQueueClosingEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventSubscriberCollection.cs">
+      <Link>Events\EventSubscriberCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventSubscription.cs">
+      <Link>Events\EventSubscription.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\EventSubscriptionBase.cs">
+      <Link>Events\EventSubscriptionBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\IEventHandler.cs">
+      <Link>Events\IEventHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\IEventQueue.cs">
+      <Link>Events\IEventQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\ManualEventPump.cs">
+      <Link>Events\ManualEventPump.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\TaskEventQueue.cs">
+      <Link>Events\TaskEventQueue.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Events\UnhandledExceptionEvent.cs">
+      <Link>Events\UnhandledExceptionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\FilePath.cs">
+      <Link>IO\FileSystems\FilePath.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\ICommonFileSystems.cs">
+      <Link>IO\FileSystems\ICommonFileSystems.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\IFileSystem.cs">
+      <Link>IO\FileSystems\IFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\IFileSystemBase.cs">
+      <Link>IO\FileSystems\IFileSystemBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\IFileSystemReader.cs">
+      <Link>IO\FileSystems\IFileSystemReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\IFileSystemWriter.cs">
+      <Link>IO\FileSystems\IFileSystemWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\MemoryFileSystem.cs">
+      <Link>IO\FileSystems\MemoryFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\MountFileSystem.cs">
+      <Link>IO\FileSystems\MountFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\SemiThreadSafeMemoryFileSystemReader.cs">
+      <Link>IO\FileSystems\SemiThreadSafeMemoryFileSystemReader.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\StreamTrackingFileSystemBase.cs">
+      <Link>IO\FileSystems\StreamTrackingFileSystemBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\IO\FileSystems\SubdirectoryFileSystem.cs">
+      <Link>IO\FileSystems\SubdirectoryFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\AggregateLogger.cs">
+      <Link>Loggers\AggregateLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\DataStoreTextLogger.cs">
+      <Link>Loggers\DataStoreTextLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\ILogger.cs">
+      <Link>Loggers\ILogger.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\LogEntry.cs">
+      <Link>Loggers\LogEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\LogLevel.cs">
+      <Link>Loggers\LogLevel.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Loggers\MemoryLogger.cs">
+      <Link>Loggers\MemoryLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\ExceptionInfo.cs">
+      <Link>Misc\ExceptionInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\FileLineInfo.cs">
+      <Link>Misc\FileLineInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\IUIThreadHandler.cs">
+      <Link>Misc\IUIThreadHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\LocalizedStringComparer.cs">
+      <Link>Misc\LocalizedStringComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\MechanicalVersion.cs">
+      <Link>Misc\MechanicalVersion.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\NonUIThreadAwaiter.cs">
+      <Link>Misc\NonUIThreadAwaiter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\StringFormatter.cs">
+      <Link>Misc\StringFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\StringState.cs">
+      <Link>Misc\StringState.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\StringStateCollection.cs">
+      <Link>Misc\StringStateCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\SynchronizationContextUIHandlerBase.cs">
+      <Link>Misc\SynchronizationContextUIHandlerBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\Misc\UIThreadAwaiter.cs">
+      <Link>Misc\UIThreadAwaiter.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\DelegateCommand.cs">
+      <Link>MVVM\DelegateCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\IPropertyChangedListener.cs">
+      <Link>MVVM\IPropertyChangedListener.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedActions.cs">
+      <Link>MVVM\PropertyChangedActions.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedBase.cs">
+      <Link>MVVM\PropertyChangedBase.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedListenerAction.cs">
+      <Link>MVVM\PropertyChangedListenerAction.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedListenerChain.cs">
+      <Link>MVVM\PropertyChangedListenerChain.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedListenerCollection.cs">
+      <Link>MVVM\PropertyChangedListenerCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\PropertyChangedSource.cs">
+      <Link>MVVM\PropertyChangedSource.cs</Link>
+    </Compile>
+    <Compile Include="..\Mechanical3.Portable\MVVM\UI.cs">
+      <Link>MVVM\UI.cs</Link>
+    </Compile>
     <Compile Include="DataStores\Json\JsonFileFormatFactory.cs" />
     <Compile Include="DataStores\Json\JsonFileFormatReader.cs" />
     <Compile Include="DataStores\Json\JsonFileFormatWriter.cs" />
@@ -70,12 +323,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="version.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Mechanical3.Portable\Mechanical3.Portable.csproj">
-      <Project>{ffadcb78-9fdc-40fb-a697-9ef972991ffe}</Project>
-      <Name>Mechanical3.Portable</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
