@@ -1,0 +1,5 @@
+* -text
+
+# show member instead of namespace in diff
+# see: https://stackoverflow.com/a/7347993
+*.cs diff=csharp
